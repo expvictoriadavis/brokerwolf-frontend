@@ -46,3 +46,10 @@ export async function fetchUsers() {
   return await res.json();
 }
 
+export async function fetchTestData(reportId) {
+  const res = await fetch(`${API_BASE_URL}/report/${reportId}/tasks`);
+  if (!res.ok) throw new Error('Failed to fetch test data');
+  return await res.json();
+}
+
+
