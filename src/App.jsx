@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './styles.css';
-import { AuthProvider, useAuth } from './AuthContext';
+import { AuthProvider, useAuth } from './AuthContext.jsx';
 import ProtectedRoute from './ProtectedRoute';
 import LoginPage from './LoginPage';
 import ReportView from './ReportView'; // You’ll rename your current task display component to this
