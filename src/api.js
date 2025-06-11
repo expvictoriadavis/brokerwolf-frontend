@@ -1,5 +1,3 @@
-// src/api.js
-
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // GET tasks by report ID
@@ -31,3 +29,9 @@ export async function updateTaskStatus(taskId, status) {
   return await response.json();
 }
 
+// GET sample test data from Supabase for debugging
+export async function fetchTestData(reportId) {
+  const response = await fetch(`${API_BASE_URL}/report/${reportId}/tasks`);
+  if (!response.ok) throw new Error('Failed to fetch test data');
+  return await response.json();
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTasks } from './api';
+import { fetchTasks, fetchTestData } from './api';
 
 const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing TRX' },
@@ -10,6 +10,8 @@ const reports = [
 export default function Dashboard() {
   const [metrics, setMetrics] = useState({});
   const [loading, setLoading] = useState(true);
+  const [testResult, setTestResult] = useState(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   useEffect(() => {
     const loadAllReports = async () => {
@@ -22,7 +24,9 @@ export default function Dashboard() {
           const assignedTasks = tasks.filter(t => t.assigned_at);
           const resolvedTasks = tasks.filter(t => t.status === 'resolved');
           const autoResolved = tasks.filter(t => t.status === 'resolved_by_import');
-          const manualResolved = resolvedTasks.filter(t => t.resolved_note !== 'Auto-resolved due to data row not in import on ');
+          const manualResolved = resolvedTasks.filter(
+            t => t.resolved_note !== 'Auto-resolved due to data row not in import on '
+          );
 
           const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
           const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
@@ -52,7 +56,7 @@ export default function Dashboard() {
         const from = r[fromKey];
         const to = r[toKey];
         if (!from || !to) return null;
-        const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24); // days
+        const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24);
         return duration > 0 ? duration : null;
       })
       .filter(Boolean);
@@ -62,9 +66,33 @@ export default function Dashboard() {
     return `${avg.toFixed(1)} days`;
   };
 
+  const handleTestFetch = async () => {
+    setTestLoading(true);
+    try {
+      const result = await fetchTestData('16da88e2-2721-44ae-a0f3-5706dcde7e98'); // Missing TRX
+      setTestResult(result.tasks.slice(0, 3));
+    } catch (err) {
+      setTestResult({ error: err.message });
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   return (
     <div>
       <h1>Broker Wolf Exception Reports</h1>
+
+      <button onClick={handleTestFetch} style={{ marginBottom: '20px' }}>
+        Run Supabase Test
+      </button>
+
+      {testLoading && <p>Loading test data...</p>}
+      {testResult && (
+        <pre style={{ textAlign: 'left', background: '#f4f4f4', padding: '10px' }}>
+          {JSON.stringify(testResult, null, 2)}
+        </pre>
+      )}
+
       {loading ? (
         <p>Loading metrics...</p>
       ) : (
