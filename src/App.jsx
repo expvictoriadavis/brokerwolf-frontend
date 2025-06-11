@@ -14,7 +14,8 @@ function Layout({ children }) {
     <div className="layout">
       <aside className="sidebar">
         <h2>Broker Wolf</h2>
-        <nav>
+        <nav className="sidebar-nav">
+          <Link to="/dashboard">📊 Dashboard</Link>
           <Link to="/report/16da88e2-2721-44ae-a0f3-5706dcde7e98">Missing TRX</Link>
           <Link to="/report/24add57e-1b40-4a49-b586-ccc2dff4faad">Missing BW</Link>
           <Link to="/report/d5cd1b59-6416-4c1d-a021-2d7f9342b49b">Multi Trade</Link>
@@ -25,7 +26,6 @@ function Layout({ children }) {
     </div>
   );
 }
-
 export default function App() {
   return (
     <AuthProvider>
