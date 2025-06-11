@@ -65,3 +65,28 @@ body {
 .error {
   color: red;
 }
+.login-container {
+  max-width: 300px;
+  margin: 100px auto;
+  padding: 2em;
+  background-color: #f3f3f3;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1em;
+}
+
+.logout-button {
+  margin-top: 2em;
+  background: #c0392b;
+  color: white;
+  padding: 10px;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
