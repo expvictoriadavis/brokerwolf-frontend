@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './styles.css';
 import { AuthProvider, useAuth } from './AuthContext.jsx';
 import ProtectedRoute from './ProtectedRoute';
-import LoginPage from './LoginPage';
-import ReportView from './ReportView'; // You’ll rename your current task display component to this
-import Dashboard from './Dashboard';   // We'll add this next
+import LoginPage from './LoginPage.jsx';
+import ReportView from './ReportView.jsx'; // You’ll rename your current task display component to this
+import Dashboard from './Dashboard.jsx';   // We'll add this next
 
 function Layout({ children }) {
   const { logout } = useAuth();
