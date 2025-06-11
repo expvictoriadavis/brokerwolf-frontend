@@ -35,14 +35,19 @@ body {
   margin-bottom: 20px;
 }
 
-.sidebar-nav a {
-  color: #8ab4f8;
+.nav-link {
+  background-color: #34495e;
+  color: white;
+  padding: 12px;
   text-decoration: none;
-  font-size: 16px;
+  border-radius: 4px;
+  text-align: left;
+  font-size: 15px;
+  transition: background-color 0.2s;
 }
 
-.sidebar-nav a:hover {
-  text-decoration: underline;
+.nav-link:hover {
+  background-color: #3d566e;
 }
 
 /* Logout Button */
