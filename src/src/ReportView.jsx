@@ -5,8 +5,7 @@ import {
   fetchUsers,
   updateTaskNote,
   resolveTask,
-  assignTask,
-  fetchLastImport
+  assignTask
 } from './api';
 import { useAuth } from './AuthContext';
 
@@ -14,27 +13,66 @@ const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
     name: 'Missing TRX',
     columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
-      'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
-      'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
     name: 'Missing BW',
     columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
-      'SourceSystemModificationTimestamp', 'SalesPriceVolume', 'ActualCloseDate', 'LifecycleStatus',
-      'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'explanation',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'SalesPriceVolume',
+      'ActualCloseDate',
+      'LifecycleStatus',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'CoAgentPercentage',
+      'NCIBAS'
     ]
   },
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
     name: 'Multi Trade',
     columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric', 'MemberFullName',
-      'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
-      'Subtrade', 'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'ErrorType',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'Subtrade',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
     ]
   }
 };
@@ -50,17 +88,13 @@ export default function ReportView() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [noteUpdates, setNoteUpdates] = useState({});
-  const [lastImport, setLastImport] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       const tasksRes = await fetchTasks(id);
       const usersRes = await fetchUsers();
-      const importRes = await fetchLastImport(id);
-
       setTasks(tasksRes.tasks || []);
       setUsers(usersRes || []);
-      setLastImport(importRes.last_imported_at || null);
       setLoading(false);
     };
     loadData();
@@ -101,32 +135,9 @@ export default function ReportView() {
     );
   };
 
-  function formatEstDate(isoString) {
-    const options = {
-      timeZone: 'America/New_York',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    };
-
-    const date = new Date(isoString);
-    const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(date);
-    const get = type => parts.find(p => p.type === type)?.value;
-
-    return `${get('month')}/${get('day')}/${get('year')} at ${get('hour')}:${get('minute')} ${get('dayPeriod')} EST`;
-  }
-
   return (
     <div>
       <h1>{reportTitle}</h1>
-      {lastImport && (
-        <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#666' }}>
-          Last Imported: {formatEstDate(lastImport)}
-        </p>
-      )}
       {loading && <p>Loading...</p>}
       {!loading && (
         <table className="task-table">
@@ -186,3 +197,5 @@ export default function ReportView() {
     </div>
   );
 }
+
+

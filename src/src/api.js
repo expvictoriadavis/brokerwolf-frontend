@@ -52,16 +52,4 @@ export async function fetchTestData(reportId) {
   return await res.json();
 }
 
-export async function triggerImportData() {
-  const res = await fetch(`${API_BASE_URL}/import_data`, {
-    method: 'POST',
-  });
-  if (!res.ok) throw new Error('Failed to trigger import');
-  return await res.json();
-}
-export async function fetchLastImport(reportId) {
-  const res = await fetch(`${API_BASE_URL}/report/${reportId}/last_import`);
-  if (!res.ok) throw new Error('Failed to fetch last import time');
-  return await res.json();
-}
 
