@@ -1,0 +1,404 @@
+{
+   "anniversary_date":"2025-07-01T00:00:00.000Z",
+   "join_date":"2025-06-13T13:07:52.262Z",
+   "join_id":"J373074",
+   "member_mobile_phone":"(345) 345-3455",
+   "member_email":"jeffrey.irsstestjune@exprealty.com",
+   "member_first_name":"Jeffrey",
+   "member_last_name":"IRSSTestJune",
+   "secondary_email":"jeffrey@irss.test",
+   "source_system_member_key":273871,
+   "mentorship_category":"None",
+   "is_in_team":false,
+   "lookup_field":"273871 | Jeffrey IRSSTestJune | jeffrey.irsstestjune@exprealty.com",
+   "has_stock_comp_program":false,
+   "is_paid_through_company":false,
+   "website_url":"",
+   "years_licensed":"_0_1",
+   "closed_transactions":"_4_7",
+   "cell_phone":"(345) 345-3455",
+   "NRDS":264742,
+   "ReceiveText":true,
+   "EmergencyContactName":"Momma",
+   "EmergencyRelationship":"Momma",
+   "EmergencyPhoneNumber":"(415) 474-5845",
+   "EmergencyEmail":"momma@love.love",
+   "create_initial_invoice_on_convert":true,
+   "initial_invoice_created":false,
+   "create_recurring_invoice_on_convert":true,
+   "recurring_invoice_created":false,
+   "joining_agent_sponsor":"none",
+   "is_offboarding":false,
+   "lifecycle_status_key":"Active",
+   "preferred_payment_method":"WF_Domestic_ACH",
+   "intacct_state":"Creating",
+   "tax_id":"{AES3}FfUxAzxKYnqvychh;r9i++E5M/Kg6nYFtmY+UQpspJqaMq2xO7/BY",
+   "uuid":"323da9d7-4854-11f0-91bb-1993dba88f95",
+   "systemkey":1,
+   "sponsoruuid":"048086be-dc8f-11ee-9ab6-1fab64a014bd",
+   "haspartneragent":false,
+   "partneruuid":"",
+   "last_modified":"2025-06-13T13:07:53.681Z",
+   "brokerbufferlevel":0,
+   "revenuesharepaidviapayroll":false,
+   "IsCommercialAgent":false,
+   "IsNonreportableAgent":false,
+   "CapStatus":"uncapped",
+   "CapPercentReached":0,
+   "ManagingBroker":false,
+   "DesignatedManagingBroker":false,
+   "Mentor":false,
+   "TeamLead":false,
+   "Co-Leader":false,
+   "FacebookURL":"",
+   "LinkedinURL":"",
+   "TwitterURL":"",
+   "Bio":"",
+   "ExcludeFromXD":false,
+   "isReferral":false,
+   "manager_email":"ann.shahin@exprealty.net",
+   "CDNRequiresNABC":"No",
+   "MultiBankAccountOptIn":true,
+   "agent_financial_settings":{
+      "mentor_fee_percentage":0,
+      "number_of_mentor_fees_to_pay":0,
+      "already_payed_mentor_fees":0,
+      "historical_mentor_fee_count":0,
+      "split_check":true,
+      "CapResetDate":"2026-06-10T19:00:00",
+      "LeftForCompetitor":false
+   },
+   "OnboardingStatus":{
+      "AgentOnboardingStatus":"Active"
+   },
+   "AgentMLSID":[
+      {
+         "GlobalID":4961,
+         "OUID":"M00000731",
+         "AgentMLSIDKey":498165,
+         "MemberStatus":"Not Verified"
+      },
+      {
+         "GlobalID":2954,
+         "OUID":"A00000381",
+         "MLSGlobalID":4961,
+         "MLSOUID":"M00000731",
+         "AgentMLSIDKey":498166,
+         "MemberStatus":"Not Verified"
+      }
+   ],
+   "TeamAgent":{
+      
+   },
+   "addresses":[
+      {
+         "address_id":4876229,
+         "address_line_1":"1230 Main St",
+         "city":"Bradenton",
+         "state":{
+            "name":"Florida",
+            "code":"FL",
+            "is_active":true,
+            "allow_split_checks":true,
+            "allow_payment_through_company":true,
+            "allow_sms":true,
+            "in_region":false,
+            "email":"FL.Broker@exprealty.net",
+            "updated_var":false,
+            "signature_distribution_email":"icasign@exprealty.net",
+            "last_modified":"2025-01-21T13:40:45.395Z",
+            "modified_by":"jordan.yeast@exprealty.net"
+         },
+         "zip":"34205",
+         "full_address":"1230 Main St, Bradenton, FL 34205, US",
+         "address_type_caption":"Contactinfo",
+         "address_type_key":"Contactinfo",
+         "label":"Contactinfo",
+         "is_company_address":false,
+         "county_lookup_caption":"pending",
+         "county_lookup_key":"pending",
+         "country":{
+            "name":"United States",
+            "code":"US",
+            "flag_sort_order":1,
+            "iso_3166":"United_States",
+            "form_is_saved":true,
+            "create_intacct_records":true,
+            "allow_sms":true,
+            "country_code":1,
+            "iso_3166_1":{
+               "alpha_2":"US",
+               "alpha_3":"USA",
+               "number_as_string":"840",
+               "numeric_code":840,
+               "country_enumeration":"United_States"
+            }
+         }
+      }
+   ],
+   "offices":[
+      {
+         "office_name":"TX - Revenos",
+         "originating_system_office_key":2072,
+         "office_dmb":"7585b33a-98bd-11ec-bd8e-53e52faf7699",
+         "office_asab":"0edea7cd-eb18-11ef-a18d-abb3b296d007, e622e99d-3fb6-11ef-8303-43f6e6e9dcb9, 79b8f68e-8fa3-11ee-b751-a5f12ea66e6e, b2c50ceb-6cdb-11ee-bb62-e32fad3f8895, 0438f9e9-6871-11ee-bb62-01945f1a5c3f, 11414fc5-9bfc-11ed-aea5-010626bb2e76, 6abdd24b-977b-11ed-aea5-cfe7f1022c5a, 57707b1a-85ca-11ec-bd8e-edd67a091802, 63a672c0-7afd-11ec-bd8e-3db77c584c2f, c5b2d5fa-724e-11ec-bd8e-1daaa4127f7a, 4dca892f-050b-11eb-95a1-bda6294cd626, 255330ba-050b-11eb-95a1-456c9c1b040e, 2065befe-050b-11eb-95a1-1f2658ceeae3",
+         "is_primary":true,
+         "company":{
+            "intacct_entity_no":111
+         },
+         "addresses":[
+            {
+               "address_id":3309430,
+               "address_line_1":" 9600 Great Hills Trails, Suite 150",
+               "city":" Austin",
+               "state":{
+                  "name":"Texas",
+                  "code":"TX",
+                  "is_active":true,
+                  "allow_split_checks":true,
+                  "allow_payment_through_company":true,
+                  "allow_sms":true,
+                  "in_region":false,
+                  "email":"TX.Broker@exprealty.net",
+                  "updated_var":false,
+                  "signature_distribution_email":"icasign@exprealty.net",
+                  "last_modified":"2025-03-19T22:04:19.008Z",
+                  "modified_by":"joseph.fiveland@exprealty.net"
+               },
+               "zip":"78759",
+               "full_address":"9600 Great Hills Trails, Suite 150, Austin, TX 78759, US",
+               "address_type_caption":"Contactinfo",
+               "address_type_key":"Contactinfo",
+               "is_company_address":false,
+               "county_lookup_caption":"pending",
+               "county_lookup_key":"pending",
+               "country":{
+                  "name":"United States",
+                  "code":"US",
+                  "flag_sort_order":1,
+                  "iso_3166":"United_States",
+                  "form_is_saved":true,
+                  "create_intacct_records":true,
+                  "allow_sms":true,
+                  "country_code":1,
+                  "iso_3166_1":{
+                     "alpha_2":"US",
+                     "alpha_3":"USA",
+                     "number_as_string":"840",
+                     "numeric_code":840,
+                     "country_enumeration":"United_States"
+                  }
+               }
+            }
+         ]
+      }
+   ],
+   "licenses":[
+      {
+         "expiration_date":"2026-07-02T04:00:00.000Z",
+         "is_primary":true,
+         "LicenseUuid":"a91b5115-3b8c-53e1-b1c3-1247e64eee04",
+         "member_state_license":"42662",
+         "member_state_license_state_code":"FL",
+         "state_sab":"7d1fccb8-67cb-11eb-8a67-1f7df92e1926",
+         "ClosedTransactions":"_4_7",
+         "YearsLicensed":"_1_2_years",
+         "LicenseType":"",
+         "NeedsMentor":false,
+         "licensefirstName":"Jeffrey",
+         "licenselastName":"IRSSTestJune",
+         "LineOfBusiness":{
+            "name":"Residential"
+         },
+         "state":{
+            "name":"Florida",
+            "code":"FL",
+            "is_active":true,
+            "allow_split_checks":true,
+            "allow_payment_through_company":true,
+            "allow_sms":true,
+            "in_region":false,
+            "email":"FL.Broker@exprealty.net",
+            "updated_var":false,
+            "signature_distribution_email":"icasign@exprealty.net",
+            "last_modified":"2025-01-21T13:40:45.395Z",
+            "modified_by":"jordan.yeast@exprealty.net",
+            "regions":[
+               {
+                  "name":"Eastern"
+               }
+            ]
+         }
+      }
+   ],
+   "payplan":{
+      "payplan_id":5,
+      "payplan_name":"80 / 20 Standard",
+      "cap":16000,
+      "university_fee":420,
+      "agent_percentage":80,
+      "liability_fee":60,
+      "liability_fee_cap":750,
+      "broker_review_fee":25,
+      "transaction_fee_tier1":250,
+      "max_fees_tier1":5000,
+      "transaction_fee_tier2":75,
+      "payplan_audithistory":[
+         {
+            "changed_attribute":"hasCapResetDateChangedByUser",
+            "changed_by":"Agent Services Manager",
+            "old_value":"false",
+            "value":"true",
+            "changed_date":"2025-06-13T13:06:28.407Z"
+         },
+         {
+            "changed_attribute":"CapResetDate",
+            "changed_by":"Agent Services Manager",
+            "value":"Jun 10 2026",
+            "changed_date":"2025-06-13T13:06:28.407Z"
+         },
+         {
+            "changed_attribute":"CapConcession",
+            "changed_by":"Agent Services Manager",
+            "value":"1000000.00000000",
+            "changed_date":"2025-06-13T13:06:28.407Z"
+         },
+         {
+            "changed_attribute":"MentorFeePercentage",
+            "changed_by":"System",
+            "old_value":"10.00000000",
+            "value":"0E-8",
+            "changed_date":"2025-06-13T13:04:56.174Z"
+         },
+         {
+            "changed_attribute":"CapConcessionEndDate",
+            "changed_by":"Agent Services Manager",
+            "value":"Tue Jun 23 00:00:00 UTC 2026",
+            "changed_date":"2025-06-13T13:06:28.407Z"
+         },
+         {
+            "changed_attribute":"CapConcessionStartDate",
+            "changed_by":"Agent Services Manager",
+            "value":"Fri Jun 13 13:06:18 UTC 2025",
+            "changed_date":"2025-06-13T13:06:28.407Z"
+         }
+      ]
+   },
+   "agent_payplan":{
+      "agent_payplan_id":303898,
+      "cap_concession":1000000,
+      "cap_concession_start_date":"2025-06-13T13:06:18.961Z",
+      "cap_concession_end_date":"2026-06-23T00:00:00.000Z",
+      "monthly_university_fee":35,
+      "has_monthly_university_fee":true,
+      "expand_mentor_program":{
+         "mentor_program_enrolled":"None",
+         "mentor_fee_waived":false,
+         "number_of_remaining_mentor_fees_to_be_paid":0,
+         "expand_program_fee_percentage":0,
+         "number_of_expand_program_fees_to_be_paid":0,
+         "number_of_paid_expand_program_fees":0,
+         "number_of_remaining_expand_program_fees_to_be_paid":0,
+         "still_has_to_pay_expand_program_fees":false
+      }
+   },
+   "languages":{
+      "description":"English, United States",
+      "code":"en_US"
+   },
+   "ActiveLocations":[
+      {
+         "name":"Active Market",
+         "city":"Bradenton",
+         "zipcode":"34205",
+         "isprimary":false,
+         "state":{
+            "name":"Florida"
+         },
+         "country":{
+            "name":"United States"
+         }
+      }
+   ],
+   "AgentCappingInfo":[
+      {
+         "CapPercentage":0
+      }
+   ],
+   "AgentMarketingCenter":{
+      "FirstName":"Jeffrey",
+      "LastName":"IRSSTestJune",
+      "Email":"jeffrey.irsstestjune@exprealty.com",
+      "PhoneNumber":"(345) 345-3455"
+   },
+   "AgentHoldStatus":{
+      "isOnHold":false
+   },
+   "joining_agent":{
+      "type_of_agent":"Individual",
+      "team_role":"",
+      "RequestedMentor":"",
+      "LicenseNo":"42662",
+      "ApplicantUuid":"323da9d7-4854-11f0-91bb-1993dba88f95",
+      "ClosedTransactionsSalesOrig":4,
+      "YearsLicensed_Original_Primary":"1-2 years"
+   },
+   "mlss":[
+      {
+         "name":"Heartland Association of REALTORS®, Inc. MLS",
+         "mlsid":1699,
+         "contact_name":"Lisa Littles",
+         "contact_title":"Executive Assistant",
+         "email":"lisa@heartlandrealtors.org",
+         "phone":"863-835-6014",
+         "ouid":"M00000731",
+         "shortname":"FL - HAORMLS",
+         "last_modified":"2023-08-16T14:47:30.684Z",
+         "modified_by":"jordan.yeast@exprealty.net",
+         "address":{
+            "address_id":1028719,
+            "address_line_1":"815 US 27 South",
+            "city":"Sebring",
+            "zip":"33870",
+            "full_address":"815 US 27 South, Sebring, FL 33870, US",
+            "address_type_caption":"Contactinfo",
+            "address_type_key":"Contactinfo",
+            "label":"MLS Address",
+            "is_company_address":false,
+            "county_lookup_caption":"pending",
+            "county_lookup_key":"pending",
+            "state":{
+               "name":"Florida",
+               "code":"FL",
+               "is_active":true,
+               "allow_split_checks":true,
+               "allow_payment_through_company":true,
+               "allow_sms":true,
+               "in_region":false,
+               "email":"FL.Broker@exprealty.net",
+               "updated_var":false,
+               "signature_distribution_email":"icasign@exprealty.net",
+               "last_modified":"2025-01-21T13:40:45.395Z",
+               "modified_by":"jordan.yeast@exprealty.net"
+            },
+            "country":{
+               "name":"United States",
+               "code":"US",
+               "flag_sort_order":1,
+               "iso_3166":"United_States",
+               "form_is_saved":true,
+               "create_intacct_records":true,
+               "allow_sms":true,
+               "country_code":1,
+               "iso_3166_1":{
+                  "alpha_2":"US",
+                  "alpha_3":"USA",
+                  "number_as_string":"840",
+                  "numeric_code":840,
+                  "country_enumeration":"United_States"
+               }
+            }
+         }
+      }
+   ]
+}
