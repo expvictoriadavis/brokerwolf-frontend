@@ -26,7 +26,7 @@ function Layout({ children }) {
               <Link className="nav-link" to="/report/16da88e2-2721-44ae-a0f3-5706dcde7e98">Missing Agents - TRX</Link>
               <Link className="nav-link" to="/report/24add57e-1b40-4a49-b586-ccc2dff4faad">Missing Agents - BW</Link>
               <Link className="nav-link" to="/report/d5cd1b59-6416-4c1d-a021-2d7f9342b49b">Multi Trade</Link>
-              {user === 'victoria.davis@exprealty.net' && (
+              {user?.email === 'victoria.davis@exprealty.net' && (
                 <Link className="nav-link" to="/approve-users">🛡️ Approvals</Link>
               )}
             </nav>
@@ -66,4 +66,5 @@ export default function App() {
     </AuthProvider>
   );
 }
+
 
