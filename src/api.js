@@ -1,9 +1,21 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function fetchTasks(reportId) {
-  const res = await fetch(`${API_BASE_URL}/report/${reportId}/tasks`);
+  let path = "";
+  if (reportId === "16da88e2-2721-44ae-a0f3-5706dcde7e98") {
+    path = "/records/missing_trx";
+  } else if (reportId === "24add57e-1b40-4a49-b586-ccc2dff4faad") {
+    path = "/records/missing_bw";
+  } else if (reportId === "d5cd1b59-6416-4c1d-a021-2d7f9342b49b") {
+    path = "/records/multi_trade";
+  } else {
+    throw new Error("Unknown report ID");
+  }
+
+  const res = await fetch(`${API_BASE_URL}${path}`);
   if (!res.ok) throw new Error('Failed to fetch tasks');
-  return await res.json();
+  const data = await res.json();
+  return { tasks: data.rows };
 }
 
 export async function assignTask(taskId, assigneeId) {
@@ -46,12 +58,6 @@ export async function fetchUsers() {
   return await res.json();
 }
 
-export async function fetchTestData(reportId) {
-  const res = await fetch(`${API_BASE_URL}/report/${reportId}/tasks`);
-  if (!res.ok) throw new Error('Failed to fetch test data');
-  return await res.json();
-}
-
 export async function triggerImportData() {
   const res = await fetch(`${API_BASE_URL}/import_data`, {
     method: 'POST',
@@ -59,3 +65,4 @@ export async function triggerImportData() {
   if (!res.ok) throw new Error('Failed to trigger import');
   return await res.json();
 }
+
