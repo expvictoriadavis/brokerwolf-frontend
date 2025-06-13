@@ -10,44 +10,44 @@ const reports = [
 export default function Dashboard() {
   const [metrics, setMetrics] = useState({});
   const [loading, setLoading] = useState(true);
-  const [testResult, setTestResult] = useState(null);
-  const [testLoading, setTestLoading] = useState(false);
   const [importSummary, setImportSummary] = useState(null);
+  const [importing, setImporting] = useState(false);
+
+  const loadAllReports = async () => {
+    setLoading(true);
+    const results = {};
+    for (const report of reports) {
+      try {
+        const data = await fetchTasks(report.id);
+        const tasks = data.tasks || [];
+
+        const assignedTasks = tasks.filter(t => t.assigned_at);
+        const resolvedTasks = tasks.filter(t => t.status === 'resolved');
+        const autoResolved = tasks.filter(t => t.status === 'resolved_by_import');
+        const manualResolved = resolvedTasks.filter(
+          t => !t.resolved_note?.startsWith('Auto-resolved')
+        );
+
+        const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
+        const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
+
+        results[report.id] = {
+          name: report.name,
+          total: tasks.length,
+          avgAssignTime,
+          avgResolveTime,
+          autoResolved: autoResolved.length,
+          manualResolved: manualResolved.length,
+        };
+      } catch (err) {
+        console.error(`Error loading report ${report.name}:`, err);
+      }
+    }
+    setMetrics(results);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const loadAllReports = async () => {
-      const results = {};
-      for (const report of reports) {
-        try {
-          const data = await fetchTasks(report.id);
-          const tasks = data.tasks || [];
-
-          const assignedTasks = tasks.filter(t => t.assigned_at);
-          const resolvedTasks = tasks.filter(t => t.status === 'resolved');
-          const autoResolved = tasks.filter(t => t.status === 'resolved_by_import');
-          const manualResolved = resolvedTasks.filter(
-            t => t.resolved_note !== 'Auto-resolved due to data row not in import on '
-          );
-
-          const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
-          const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
-
-          results[report.id] = {
-            name: report.name,
-            total: tasks.length,
-            avgAssignTime,
-            avgResolveTime,
-            autoResolved: autoResolved.length,
-            manualResolved: manualResolved.length,
-          };
-        } catch (err) {
-          console.error(`Error loading report ${report.name}:`, err);
-        }
-      }
-      setMetrics(results);
-      setLoading(false);
-    };
-
     loadAllReports();
   }, []);
 
@@ -67,20 +67,18 @@ export default function Dashboard() {
     return `${avg.toFixed(1)} days`;
   };
 
-  const handleTestFetch = async () => {
-    setTestLoading(true);
+  const handleImportReports = async () => {
+    setImporting(true);
     setImportSummary(null);
-    setTestResult(null);
     try {
       const importResult = await triggerImportData();
       setImportSummary(importResult);
-
-      const result = await fetchTestData('16da88e2-2721-44ae-a0f3-5706dcde7e98'); // Missing TRX
-      setTestResult(result.tasks.slice(0, 3));
+      await loadAllReports();
     } catch (err) {
-      setTestResult({ error: err.message });
+      console.error('Import error:', err);
+      setImportSummary({ error: err.message });
     } finally {
-      setTestLoading(false);
+      setImporting(false);
     }
   };
 
@@ -88,27 +86,18 @@ export default function Dashboard() {
     <div>
       <h1>Broker Wolf Exception Reports</h1>
 
-      <button onClick={handleTestFetch} style={{ marginBottom: '20px' }}>
-        Run Supabase Test
+      <button onClick={handleImportReports} disabled={importing} style={{ marginBottom: '20px' }}>
+        {importing ? 'Pulling Reports...' : 'Pull Reports'}
       </button>
 
-      {testLoading && <p>Loading test data...</p>}
-
-      {importSummary && importSummary.results && (
-        <div style={{ textAlign: 'left', background: '#eaf5ff', padding: '10px', marginBottom: '10px' }}>
+      {importSummary?.results?.length > 0 && (
+        <div style={{ background: '#eaf5ff', padding: '10px', marginBottom: '20px' }}>
           <strong>Import Summary:</strong>
           <ul>
             {importSummary.results.map((r, i) => (
               <li key={i}>{r.file}: {r.imported_rows} rows imported</li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {testResult && (
-        <div style={{ textAlign: 'left', background: '#f4f4f4', padding: '10px', marginBottom: '20px' }}>
-          <strong>Sample Tasks (Missing TRX):</strong>
-          <pre>{JSON.stringify(testResult, null, 2)}</pre>
         </div>
       )}
 
