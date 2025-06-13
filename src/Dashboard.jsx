@@ -6,8 +6,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const reports = [
-  { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing TRX' },
-  { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing BW' },
+  { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Agents - TRX' },
+  { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Agents - BW' },
   { id: 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b', name: 'Multi Trade' },
 ];
 

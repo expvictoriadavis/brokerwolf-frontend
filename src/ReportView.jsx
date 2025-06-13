@@ -11,7 +11,7 @@ import { useAuth } from './AuthContext';
 
 const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
-    name: 'Missing TRX',
+    name: 'Missing Agents - TRX',
     columns: [
       'BrokerWolfTransactionKeyNumeric',
       'Number',
@@ -33,7 +33,7 @@ const reportMetadata = {
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
-    name: 'Missing BW',
+    name: 'Missing Agents - BW',
     columns: [
       'BrokerWolfTransactionKeyNumeric',
       'Number',
