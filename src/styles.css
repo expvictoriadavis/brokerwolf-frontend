@@ -148,27 +148,3 @@ body {
   content: "—";
   color: #bbb;
 }
-/* COLLAPSED SIDEBAR BEHAVIOR */
-.sidebar-collapsed .sidebar {
-  width: 50px;
-  transition: width 0.3s;
-  overflow: hidden;
-}
-
-.sidebar-collapsed .sidebar h2,
-.sidebar-collapsed .sidebar .sidebar-nav,
-.sidebar-collapsed .sidebar .logout-button {
-  display: none;
-}
-
-.sidebar .collapse-toggle {
-  background: none;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-.sidebar-collapsed .collapse-toggle {
-  transform: rotate(180deg);
-}
