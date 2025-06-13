@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTasks, triggerImportData } from './api';
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing TRX' },
@@ -12,6 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [importSummary, setImportSummary] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [lastImportTime, setLastImportTime] = useState(null);
 
   const loadAllReports = async () => {
     setLoading(true);
@@ -38,6 +43,7 @@ export default function Dashboard() {
           avgResolveTime,
           autoResolved: autoResolved.length,
           manualResolved: manualResolved.length,
+          open: tasks.length - autoResolved.length - manualResolved.length,
         };
       } catch (err) {
         console.error(`Error loading report ${report.name}:`, err);
@@ -73,6 +79,7 @@ export default function Dashboard() {
     try {
       const importResult = await triggerImportData();
       setImportSummary(importResult);
+      setLastImportTime(new Date().toISOString());
       await loadAllReports();
     } catch (err) {
       console.error('Import error:', err);
@@ -82,16 +89,48 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div>
-      <h1>Broker Wolf Exception Reports</h1>
+  const renderChart = (reportId) => {
+    const data = metrics[reportId];
+    if (!data || data.total === 0) return null;
 
-      <button onClick={handleImportReports} disabled={importing} style={{ marginBottom: '20px' }}>
-        {importing ? 'Pulling Reports...' : 'Pull Reports'}
-      </button>
+    const open = data.open;
+    const resolved = data.manualResolved + data.autoResolved;
+
+    return (
+      <Doughnut
+        data={{
+          labels: ['Open', 'Resolved'],
+          datasets: [
+            {
+              data: [open, resolved],
+              backgroundColor: ['#facc15', '#4ade80'],
+              borderColor: ['#eab308', '#22c55e'],
+              borderWidth: 1,
+            },
+          ],
+        }}
+        options={{ plugins: { legend: { position: 'bottom' } } }}
+      />
+    );
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Broker Wolf Exception Reports</h1>
+        <button onClick={handleImportReports} disabled={importing} style={{ padding: '10px 20px' }}>
+          {importing ? 'Pulling Reports...' : 'Pull Reports'}
+        </button>
+      </div>
+
+      {lastImportTime && (
+        <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#555' }}>
+          Last import: {new Date(lastImportTime).toLocaleString()}
+        </p>
+      )}
 
       {importSummary?.results?.length > 0 && (
-        <div style={{ background: '#eaf5ff', padding: '10px', marginBottom: '20px' }}>
+        <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
           <strong>Import Summary:</strong>
           <ul>
             {importSummary.results.map((r, i) => (
@@ -104,24 +143,45 @@ export default function Dashboard() {
       {loading ? (
         <p>Loading metrics...</p>
       ) : (
-        reports.map(r => {
-          const m = metrics[r.id];
-          if (!m) return <p key={r.id}>No data for {r.name}</p>;
-
-          return (
-            <div key={r.id} className="report-metrics">
-              <h2>{m.name}</h2>
-              <ul>
-                <li>Total Tasks: {m.total}</li>
-                <li>Avg Time to Assign: {m.avgAssignTime}</li>
-                <li>Avg Time to Resolve: {m.avgResolveTime}</li>
-                <li>Resolved by Import: {m.autoResolved}</li>
-                <li>Resolved by Assignee: {m.manualResolved}</li>
-              </ul>
-            </div>
-          );
-        })
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+          {reports.map(r => {
+            const m = metrics[r.id];
+            return (
+              <div
+                key={r.id}
+                style={{
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  width: '320px',
+                  backgroundColor: '#fff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                <h2>{r.name}</h2>
+                {m ? (
+                  <>
+                    <ul style={{ paddingLeft: '16px' }}>
+                      <li><strong>Total Tasks:</strong> {m.total}</li>
+                      <li><strong>Avg Time to Assign:</strong> {m.avgAssignTime}</li>
+                      <li><strong>Avg Time to Resolve:</strong> {m.avgResolveTime}</li>
+                      <li><strong>Resolved by Import:</strong> {m.autoResolved}</li>
+                      <li><strong>Resolved by Assignee:</strong> {m.manualResolved}</li>
+                      <li><strong>Completion:</strong> {m.total > 0 ? `${Math.round(((m.manualResolved + m.autoResolved) / m.total) * 100)}%` : '0%'}</li>
+                    </ul>
+                    <div style={{ maxWidth: '220px', margin: '0 auto' }}>
+                      {renderChart(r.id)}
+                    </div>
+                  </>
+                ) : (
+                  <p>No data for {r.name}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 }
+
