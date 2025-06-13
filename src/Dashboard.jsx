@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTasks, fetchTestData, triggerImportData } from './api';
+import { fetchTasks, triggerImportData } from './api';
 
 const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing TRX' },
