@@ -10,9 +10,71 @@ import {
 import { useAuth } from './AuthContext';
 
 const reportMetadata = {
-  '16da88e2-2721-44ae-a0f3-5706dcde7e98': { name: 'Missing TRX', columns: [ /* ... */ ] },
-  '24add57e-1b40-4a49-b586-ccc2dff4faad': { name: 'Missing BW', columns: [ /* ... */ ] },
-  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': { name: 'Multi Trade', columns: [ /* ... */ ] }
+  '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
+    name: 'Missing TRX',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
+    ]
+  },
+  '24add57e-1b40-4a49-b586-ccc2dff4faad': {
+    name: 'Missing BW',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'explanation',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'SalesPriceVolume',
+      'ActualCloseDate',
+      'LifecycleStatus',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'CoAgentPercentage',
+      'NCIBAS'
+    ]
+  },
+  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
+    name: 'Multi Trade',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'ErrorType',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'Subtrade',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
+    ]
+  }
 };
 
 export default function ReportView() {
@@ -32,6 +94,7 @@ export default function ReportView() {
   useEffect(() => {
     const loadData = async () => {
       const tasksRes = await fetchTasks(id);
+      console.log("Tasks loaded:", tasksRes.tasks);
       const usersRes = await fetchUsers();
       setTasks(tasksRes.tasks || []);
       setUsers(usersRes || []);
@@ -57,10 +120,7 @@ export default function ReportView() {
     setTasks(prev =>
       prev.map(t =>
         t.id === activeTask.id
-          ? {
-              ...t,
-              notes: parseNotesToArray(t.notes).concat(note)
-            }
+          ? { ...t, notes: parseNotesToArray(t.notes).concat(note) }
           : t
       )
     );
@@ -117,7 +177,7 @@ export default function ReportView() {
               tasks.map((task) => (
                 <tr key={task.id}>
                   <td style={{ color: task.resolved ? 'green' : 'orange', fontWeight: 'bold' }}>
-                    {task.resolved ? 'resolved' : 'open'}
+                    {task.resolved ? 'resolved' : task.assignee_id ? 'in progress' : 'open'}
                   </td>
                   <td>
                     <button onClick={() => openNoteModal(task)}>Add Note</button>
