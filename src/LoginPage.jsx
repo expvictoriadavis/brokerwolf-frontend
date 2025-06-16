@@ -10,7 +10,6 @@ export default function LoginPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // If already logged in, check approval
   useEffect(() => {
     const checkApproval = async () => {
       if (!user?.email) return;
@@ -22,10 +21,10 @@ export default function LoginPage() {
         .eq('approved', true);
 
       if (error) {
-        console.error('Error checking approval:', error);
+        console.error('Approval check error:', error);
         setMessage('Server error. Please try again.');
         logout();
-      } else if (data.length === 0) {
+      } else if (!data?.length) {
         setMessage('Your access is pending approval by Victoria.');
         logout();
       } else {
@@ -45,14 +44,14 @@ export default function LoginPage() {
       email,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: `"https://brokerwolf-frontend.onrender.com/dashboard"`
+        emailRedirectTo: "https://brokerwolf-frontend.onrender.com/dashboard"
       }
     });
 
     if (error) {
       console.error('Login error:', error.message);
       setStatus('error');
-      setMessage(error.message || 'Login failed. Try again.');
+      setMessage(error.message || 'Login failed.');
     } else {
       setStatus('sent');
     }
@@ -60,10 +59,12 @@ export default function LoginPage() {
 
   return (
     <div className="login-container">
-      <h2>Login to Broker Wolf</h2>
+      <h2>Login to Broker Wolf Exceptions Report App</h2>
 
       {status === 'sent' ? (
-        <p className="success">📧 Check your email for a login link.</p>
+        <p className="success" style={{ marginTop: '1em' }}>
+          ✅ Check your email for your login link.
+        </p>
       ) : (
         <form onSubmit={handleSubmit}>
           <input
@@ -74,7 +75,7 @@ export default function LoginPage() {
             required
           />
           <button type="submit" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Sending...' : 'Send Magic Link'}
+            {status === 'sending' ? 'Sending...' : 'Send Login Link'}
           </button>
         </form>
       )}
@@ -87,4 +88,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
