@@ -213,7 +213,7 @@ export default function ReportView() {
       {/* Time Metrics Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
-          <div className="modal-box">
+          <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
             <h3>⏱ Time Metrics</h3>
             <ul>
               <li><strong>Created → Assigned:</strong> {getDuration(timeTask.created_at, timeTask.assigned_at)}</li>
@@ -230,14 +230,17 @@ export default function ReportView() {
       {/* Notes Modal */}
       {showNoteModal && activeTask && (
         <div className="modal-overlay">
-          <div className="modal-box">
+          <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
             <h3>📝 Notes</h3>
 
             {Array.isArray(activeTask.notes) && activeTask.notes.length > 0 ? (
-              <div style={{ marginBottom: '1rem' }}>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
                 {activeTask.notes.map((note, index) => (
-                  <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '5px', borderRadius: '5px' }}>
-                    <strong>{note.user || 'anonymous'}</strong> — {new Date(note.timestamp).toLocaleString()}
+                  <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '8px', borderRadius: '5px' }}>
+                    <strong>{note.user || 'anonymous'}</strong> —{' '}
+                    {note.timestamp
+                      ? new Date(note.timestamp).toLocaleString()
+                      : 'No timestamp'}
                     <div>{note.message}</div>
                   </div>
                 ))}
