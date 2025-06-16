@@ -126,7 +126,18 @@ export default function ReportView() {
                   <td>{task.assigned_at?.split('T')[0] || '—'}</td>
                   <td><button>✔️</button></td>
                   <td><button onClick={() => openTimeModal(task)}>View</button></td>
-                  <td>{new Date(task.imported_at).toLocaleDateString()}</td>
+                  <td>
+  {task.created_at
+    ? new Date(task.created_at).toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+    : '—'}
+</td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
