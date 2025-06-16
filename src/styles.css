@@ -199,4 +199,13 @@ body {
   padding: 8px;
   border-radius: 4px;
 }
+.task-table th,
+.task-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+.task-table td {
+  padding: 12px;
+  font-size: 14px;
+}
 
