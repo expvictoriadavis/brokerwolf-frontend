@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -58,33 +58,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login to Broker Wolf Exceptions Report App</h2>
+    <div className="full-page-center">
+      <div className="login-container">
+        <h2>Login to Broker Wolf Exceptions Report App</h2>
 
-      {status === 'sent' ? (
-        <p className="success" style={{ marginTop: '1em' }}>
-          ✅ Check your email for your login link.
-        </p>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Sending...' : 'Send Login Link'}
-          </button>
-        </form>
-      )}
+        {status === 'sent' ? (
+          <p className="success" style={{ marginTop: '1em' }}>
+            ✅ Check your email for your login link.
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <button type="submit" disabled={status === 'sending'}>
+              {status === 'sending' ? 'Sending...' : 'Send Login Link'}
+            </button>
+          </form>
+        )}
 
-      {message && (
-        <p style={{ marginTop: '1em', color: status === 'error' ? '#d00' : '#555' }}>
-          {message}
-        </p>
-      )}
+        {message && (
+          <p style={{ marginTop: '1em', color: status === 'error' ? '#d00' : '#555' }}>
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
