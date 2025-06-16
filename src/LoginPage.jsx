@@ -44,7 +44,7 @@ export default function LoginPage() {
       email,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: "https://brokerwolf-frontend.onrender.com/dashboard"
+        emailRedirectTo: "https://brokerwolf-frontend.onrender.com/handle-login"
       }
     });
 
