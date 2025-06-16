@@ -10,9 +10,71 @@ import {
 import { useAuth } from './AuthContext';
 
 const reportMetadata = {
-  '16da88e2-2721-44ae-a0f3-5706dcde7e98': { name: 'Missing TRX', columns: [ /* your columns here */ ] },
-  '24add57e-1b40-4a49-b586-ccc2dff4faad': { name: 'Missing BW', columns: [ /* your columns here */ ] },
-  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': { name: 'Multi Trade', columns: [ /* your columns here */ ] }
+  '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
+    name: 'Missing TRX',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
+    ]
+  },
+  '24add57e-1b40-4a49-b586-ccc2dff4faad': {
+    name: 'Missing BW',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionKeyNumeric',
+      'TransactionNumber',
+      'explanation',
+      'Transaction2KeyNumeric',
+      'Transaction2Number',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'SalesPriceVolume',
+      'ActualCloseDate',
+      'LifecycleStatus',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'CoAgentPercentage',
+      'NCIBAS'
+    ]
+  },
+  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
+    name: 'Multi Trade',
+    columns: [
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'ErrorType',
+      'MemberKeyNumeric',
+      'MemberFullName',
+      'SourceSystemModificationTimestamp',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'Subtrade',
+      'UnitsBuyer',
+      'UnitsSeller',
+      'IsBuyerAgent',
+      'Percentage',
+      'Amount'
+    ]
+  }
 };
 
 export default function ReportView() {
@@ -25,11 +87,17 @@ export default function ReportView() {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [activeTask, setActiveTask] = useState(null);
   const [newNoteText, setNewNoteText] = useState('');
+
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [timeTask, setTimeTask] = useState(null);
+
+  const [selectedAssignees, setSelectedAssignees] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [transactionFilter, setTransactionFilter] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -43,9 +111,9 @@ export default function ReportView() {
   }, [id]);
 
   const getStatus = (task) => {
-    if (task.resolved) return "resolved";
-    if (task.assignee_id) return "in progress";
-    return "open";
+    if (task.resolved) return 'resolved';
+    if (task.assignee_id) return 'in progress';
+    return 'open';
   };
 
   const getDurationInDays = (start, end) => {
@@ -114,9 +182,55 @@ export default function ReportView() {
     setShowTimeModal(true);
   };
 
+  const filteredTasks = tasks.filter(task => {
+    const status = getStatus(task);
+    const transactionMatch = transactionFilter.trim()
+      ? (task.data_row?.TransactionNumber || '').toString().includes(transactionFilter.trim())
+      : true;
+    const assigneeMatch = selectedAssignees.length === 0 || selectedAssignees.includes(task.assignee_id);
+    const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(status);
+    return transactionMatch && assigneeMatch && statusMatch;
+  });
+
   return (
     <div>
       <h1>{reportTitle}</h1>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '1em' }}>
+        <div>
+          <label>Assignees:</label><br />
+          <select multiple value={selectedAssignees} onChange={(e) => {
+            const values = Array.from(e.target.selectedOptions, opt => opt.value);
+            setSelectedAssignees(values);
+          }}>
+            {users.map(u => (
+              <option key={u.id} value={u.id}>{u.name || u.email}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Status:</label><br />
+          <select multiple value={selectedStatuses} onChange={(e) => {
+            const values = Array.from(e.target.selectedOptions, opt => opt.value);
+            setSelectedStatuses(values);
+          }}>
+            <option value="open">Open</option>
+            <option value="in progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div>
+          <label>Transaction Number:</label><br />
+          <input
+            type="text"
+            value={transactionFilter}
+            onChange={e => setTransactionFilter(e.target.value)}
+            placeholder="Search..."
+          />
+        </div>
+      </div>
+
       {loading && <p>Loading...</p>}
       {!loading && (
         <table className="task-table">
@@ -134,8 +248,8 @@ export default function ReportView() {
             </tr>
           </thead>
           <tbody>
-            {tasks.length > 0 ? (
-              tasks.map((task) => (
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => (
                 <tr key={task.id}>
                   <td style={{ color: task.resolved ? 'green' : 'orange', fontWeight: 'bold' }}>
                     {getStatus(task)}
@@ -168,13 +282,14 @@ export default function ReportView() {
               ))
             ) : (
               <tr>
-                <td colSpan={reportColumns.length + 6}>No tasks available for this report.</td>
+                <td colSpan={reportColumns.length + 6}>No matching tasks.</td>
               </tr>
             )}
           </tbody>
         </table>
       )}
 
+      {/* Note Modal */}
       {showNoteModal && activeTask && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -198,6 +313,7 @@ export default function ReportView() {
         </div>
       )}
 
+      {/* Time Metrics Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
           <div className="modal-box">
