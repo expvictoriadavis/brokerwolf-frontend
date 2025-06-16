@@ -10,71 +10,9 @@ import {
 import { useAuth } from './AuthContext';
 
 const reportMetadata = {
-  '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
-    name: 'Missing TRX',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
-    ]
-  },
-  '24add57e-1b40-4a49-b586-ccc2dff4faad': {
-    name: 'Missing BW',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'explanation',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'SalesPriceVolume',
-      'ActualCloseDate',
-      'LifecycleStatus',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'CoAgentPercentage',
-      'NCIBAS'
-    ]
-  },
-  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
-    name: 'Multi Trade',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'ErrorType',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'Subtrade',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
-    ]
-  }
+  '16da88e2-2721-44ae-a0f3-5706dcde7e98': { name: 'Missing TRX', columns: [ /* your columns here */ ] },
+  '24add57e-1b40-4a49-b586-ccc2dff4faad': { name: 'Missing BW', columns: [ /* your columns here */ ] },
+  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': { name: 'Multi Trade', columns: [ /* your columns here */ ] }
 };
 
 export default function ReportView() {
@@ -90,11 +28,12 @@ export default function ReportView() {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [activeTask, setActiveTask] = useState(null);
   const [newNoteText, setNewNoteText] = useState('');
+  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [timeTask, setTimeTask] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       const tasksRes = await fetchTasks(id);
-      console.log("Tasks loaded:", tasksRes.tasks);
       const usersRes = await fetchUsers();
       setTasks(tasksRes.tasks || []);
       setUsers(usersRes || []);
@@ -102,6 +41,18 @@ export default function ReportView() {
     };
     loadData();
   }, [id]);
+
+  const getStatus = (task) => {
+    if (task.resolved) return "resolved";
+    if (task.assignee_id) return "in progress";
+    return "open";
+  };
+
+  const getDurationInDays = (start, end) => {
+    if (!start || !end) return '—';
+    const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24);
+    return `${diff.toFixed(1)} days`;
+  };
 
   const openNoteModal = (task) => {
     setActiveTask(task);
@@ -139,7 +90,7 @@ export default function ReportView() {
   const handleResolve = async (taskId) => {
     await resolveTask(taskId);
     setTasks(prev =>
-      prev.map(t => t.id === taskId ? { ...t, resolved: true } : t)
+      prev.map(t => t.id === taskId ? { ...t, resolved: true, resolved_at: new Date().toISOString() } : t)
     );
   };
 
@@ -148,10 +99,19 @@ export default function ReportView() {
     setTasks(prev =>
       prev.map(t =>
         t.id === taskId
-          ? { ...t, assignee_id: assigneeId, assigned_at: new Date().toISOString() }
+          ? {
+              ...t,
+              assignee_id: assigneeId,
+              assigned_at: assigneeId ? new Date().toISOString() : null
+            }
           : t
       )
     );
+  };
+
+  const openTimeModal = (task) => {
+    setTimeTask(task);
+    setShowTimeModal(true);
   };
 
   return (
@@ -167,6 +127,7 @@ export default function ReportView() {
               <th>Assignee</th>
               <th>Assigned At</th>
               <th>Action</th>
+              <th>Time Metrics</th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
@@ -177,7 +138,7 @@ export default function ReportView() {
               tasks.map((task) => (
                 <tr key={task.id}>
                   <td style={{ color: task.resolved ? 'green' : 'orange', fontWeight: 'bold' }}>
-                    {task.resolved ? 'resolved' : task.assignee_id ? 'in progress' : 'open'}
+                    {getStatus(task)}
                   </td>
                   <td>
                     <button onClick={() => openNoteModal(task)}>Add Note</button>
@@ -197,6 +158,9 @@ export default function ReportView() {
                   <td>
                     <button onClick={() => handleResolve(task.id)}>✔️ Resolve</button>
                   </td>
+                  <td>
+                    <button onClick={() => openTimeModal(task)}>View</button>
+                  </td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
@@ -204,7 +168,7 @@ export default function ReportView() {
               ))
             ) : (
               <tr>
-                <td colSpan={reportColumns.length + 5}>No tasks available for this report.</td>
+                <td colSpan={reportColumns.length + 6}>No tasks available for this report.</td>
               </tr>
             )}
           </tbody>
@@ -229,6 +193,22 @@ export default function ReportView() {
             <div className="modal-actions">
               <button onClick={() => setShowNoteModal(false)}>Close</button>
               <button onClick={saveNoteToTask}>Save Note</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTimeModal && timeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>⏱ Time Metrics</h3>
+            <ul>
+              <li><strong>Time Open:</strong> {getDurationInDays(timeTask.imported_at, timeTask.assigned_at || timeTask.resolved_at)}</li>
+              <li><strong>Time Assigned:</strong> {getDurationInDays(timeTask.assigned_at, timeTask.resolved_at)}</li>
+              <li><strong>Total Time to Resolve:</strong> {getDurationInDays(timeTask.imported_at, timeTask.resolved_at)}</li>
+            </ul>
+            <div className="modal-actions">
+              <button onClick={() => setShowTimeModal(false)}>Close</button>
             </div>
           </div>
         </div>
