@@ -74,14 +74,14 @@ export default function ReportView() {
     return 'open';
   };
 
-  const getDurationInDays = (start, end) => {
+  const getDuration = (start, end) => {
     if (!start || !end) return '—';
-    const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24);
-    return `${diff.toFixed(1)} days`;
+    const diff = new Date(end) - new Date(start);
+    return `${(diff / (1000 * 60 * 60 * 24)).toFixed(1)} days`;
   };
 
   const toggleSortByDate = () => {
-    setSortByDate(prev => prev === 'asc' ? 'desc' : 'asc');
+    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
   const handleAssign = async (taskId, assigneeId) => {
@@ -112,13 +112,25 @@ export default function ReportView() {
 
   const saveNoteToTask = async () => {
     if (!newNoteText.trim()) return;
+
     const note = {
       user: user?.email || 'anonymous',
       timestamp: new Date().toISOString(),
       message: newNoteText.trim()
     };
+
     await updateTaskNote(activeTask.id, note);
+
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === activeTask.id
+          ? { ...t, notes: [...(t.notes || []), note] }
+          : t
+      )
+    );
+
     setShowNoteModal(false);
+    setNewNoteText('');
   };
 
   const filteredTasks = tasks.sort((a, b) => {
@@ -198,14 +210,15 @@ export default function ReportView() {
         </table>
       )}
 
+      {/* Time Metrics Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>⏱ Time Metrics</h3>
             <ul>
-              <li><strong>Time Open:</strong> {getDurationInDays(timeTask.created_at, timeTask.assigned_at || timeTask.resolved_at)}</li>
-              <li><strong>Time Assigned:</strong> {getDurationInDays(timeTask.assigned_at, timeTask.resolved_at)}</li>
-              <li><strong>Total Time to Resolve:</strong> {getDurationInDays(timeTask.created_at, timeTask.resolved_at)}</li>
+              <li><strong>Created → Assigned:</strong> {getDuration(timeTask.created_at, timeTask.assigned_at)}</li>
+              <li><strong>Assigned → Resolved:</strong> {getDuration(timeTask.assigned_at, timeTask.resolved_at)}</li>
+              <li><strong>Created → Resolved:</strong> {getDuration(timeTask.created_at, timeTask.resolved_at)}</li>
             </ul>
             <div className="modal-actions">
               <button onClick={() => setShowTimeModal(false)}>Close</button>
@@ -213,37 +226,40 @@ export default function ReportView() {
           </div>
         </div>
       )}
-{showTimeModal && timeTask && (
-  <div className="modal-overlay">
-    <div className="modal-box">
-      <h3>⏱ Time Metrics</h3>
-      ...
-      <div className="modal-actions">
-        <button onClick={() => setShowTimeModal(false)}>Close</button>
-      </div>
-    </div>
-  </div>
-)}
 
-{showNoteModal && activeTask && (
-  <div className="modal-overlay">
-    <div className="modal-box">
-      <h3>📝 Add Note</h3>
-      <textarea
-        value={newNoteText}
-        onChange={(e) => setNewNoteText(e.target.value)}
-        placeholder="Enter your note here..."
-        rows={4}
-        style={{ width: '100%', padding: '8px' }}
-      />
-      <div className="modal-actions" style={{ marginTop: '1rem' }}>
-        <button onClick={saveNoteToTask}>Save Note</button>
-        <button onClick={() => setShowNoteModal(false)} style={{ marginLeft: '10px' }}>Cancel</button>
-      </div>
-    </div>
-  </div>
-)}
+      {/* Notes Modal */}
+      {showNoteModal && activeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>📝 Notes</h3>
 
+            {Array.isArray(activeTask.notes) && activeTask.notes.length > 0 ? (
+              <div style={{ marginBottom: '1rem' }}>
+                {activeTask.notes.map((note, index) => (
+                  <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '5px', borderRadius: '5px' }}>
+                    <strong>{note.user || 'anonymous'}</strong> — {new Date(note.timestamp).toLocaleString()}
+                    <div>{note.message}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No notes yet.</p>
+            )}
+
+            <textarea
+              value={newNoteText}
+              onChange={(e) => setNewNoteText(e.target.value)}
+              placeholder="Add a note..."
+              rows={4}
+              style={{ width: '100%', padding: '8px' }}
+            />
+            <div className="modal-actions" style={{ marginTop: '1rem' }}>
+              <button onClick={() => setShowNoteModal(false)}>Close</button>
+              <button onClick={saveNoteToTask} style={{ marginLeft: '10px' }}>Save Note</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
