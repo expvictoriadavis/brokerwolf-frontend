@@ -45,26 +45,44 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout><Dashboard /></Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/report/:id" element={
-            <ProtectedRoute>
-              <Layout><ReportView /></Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/approve-users" element={
-            <ProtectedRoute>
-              <Layout><UserApproval /></Layout>
-            </ProtectedRoute>
-          } />
+          
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/report/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ReportView />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/approve-users"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <UserApproval />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Default redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
   );
 }
-
-

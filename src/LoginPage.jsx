@@ -1,40 +1,40 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-console.log("API_BASE_URL:", API_BASE_URL);
+import { supabase } from './supabaseClient'; // make sure this is correctly configured
+import { useAuth } from './AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const { login } = useAuth();
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect if already logged in
+  if (user) {
+    navigate('/dashboard');
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login handler triggered");
-    setMessage('');
+    setStatus('sending');
+    setErrorMessage('');
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-      console.log("Response data:", data);
-
-      if (data.status === 'ok') {
-        login(email);
-        navigate('/dashboard');
-      } else {
-        setMessage(data.message || 'Login pending or failed.');
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/dashboard`
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      setMessage("Login failed. Please try again.");
+    });
+
+    if (error) {
+      console.error('Supabase login error:', error.message);
+      setStatus('error');
+      setErrorMessage(error.message || 'Login failed.');
+    } else {
+      setStatus('sent');
     }
   };
 
@@ -42,17 +42,25 @@ export default function LoginPage() {
     <div className="full-page-center">
       <div className="login-container">
         <h2>Login to Broker Wolf</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit">Login</button>
-        </form>
-        {message && <p className="error">{message}</p>}
+
+        {status === 'sent' ? (
+          <p className="success">📧 Check your email for a login link.</p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <button type="submit" disabled={status === 'sending'}>
+              {status === 'sending' ? 'Sending...' : 'Send Magic Link'}
+            </button>
+          </form>
+        )}
+
+        {status === 'error' && <p className="error">{errorMessage}</p>}
       </div>
     </div>
   );
