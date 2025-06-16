@@ -11,7 +11,7 @@ import { useAuth } from './AuthContext';
 
 const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
-    name: 'Missing Agents - TRX',
+    name: 'Missing TRX',
     columns: [
       'BrokerWolfTransactionKeyNumeric',
       'Number',
@@ -33,7 +33,7 @@ const reportMetadata = {
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
-    name: 'Missing Agents - BW',
+    name: 'Missing BW',
     columns: [
       'BrokerWolfTransactionKeyNumeric',
       'Number',
@@ -109,7 +109,7 @@ export default function ReportView() {
     if (!message) return;
 
     const note = {
-      user: user?.username || 'anonymous',
+      user: user?.email || 'anonymous',
       timestamp: new Date().toISOString(),
       message,
     };
@@ -143,23 +143,21 @@ export default function ReportView() {
         <table className="task-table">
           <thead>
             <tr>
-              {reportColumns.map((col) => (
-                <th key={col}>{col}</th>
-              ))}
+              {/* Move interactive columns to the front */}
               <th>Status</th>
               <th>Note</th>
               <th>Assignee</th>
               <th>Assigned At</th>
               <th>Action</th>
+              {reportColumns.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <tr key={task.id}>
-                  {reportColumns.map((col) => (
-                    <td key={col}>{task.data_row?.[col] ?? '—'}</td>
-                  ))}
                   <td>{task.status}</td>
                   <td>
                     <input
@@ -184,6 +182,9 @@ export default function ReportView() {
                   <td>
                     <button onClick={() => handleResolve(task.id)}>✔️ Resolve</button>
                   </td>
+                  {reportColumns.map((col) => (
+                    <td key={col}>{task.data_row?.[col] ?? '—'}</td>
+                  ))}
                 </tr>
               ))
             ) : (
@@ -197,5 +198,3 @@ export default function ReportView() {
     </div>
   );
 }
-
-
