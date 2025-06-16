@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -50,15 +51,9 @@ export default function ReportView() {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [selectedAssignees, setSelectedAssignees] = useState([]);
-  const [selectedStatuses, setSelectedStatuses] = useState([]);
-  const [transactionFilter, setTransactionFilter] = useState('');
-
-  const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
-  const assigneeRef = useRef();
-  const statusRef = useRef();
+  const [sortByDate, setSortByDate] = useState('desc');
+  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [timeTask, setTimeTask] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,96 +66,36 @@ export default function ReportView() {
     loadData();
   }, [id]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!assigneeRef.current?.contains(e.target)) setAssigneeDropdownOpen(false);
-      if (!statusRef.current?.contains(e.target)) setStatusDropdownOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const getStatus = (task) => {
     if (task.resolved) return 'resolved';
     if (task.assignee_id) return 'in progress';
     return 'open';
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    const status = getStatus(task);
-    const matchesTransaction = transactionFilter
-      ? (task.data_row?.TransactionNumber || '').toString().includes(transactionFilter)
-      : true;
-    const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(status);
-    const matchesAssignee = selectedAssignees.length === 0 || selectedAssignees.includes(task.assignee_id);
-    return matchesTransaction && matchesStatus && matchesAssignee;
+  const getDurationInDays = (start, end) => {
+    if (!start || !end) return '—';
+    const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24);
+    return `${diff.toFixed(1)} days`;
+  };
+
+  const toggleSortByDate = () => {
+    setSortByDate(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const filteredTasks = tasks.sort((a, b) => {
+    const dateA = new Date(a.imported_at);
+    const dateB = new Date(b.imported_at);
+    return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
   });
 
-  const toggleSelection = (value, list, setList) => {
-    setList((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+  const openTimeModal = (task) => {
+    setTimeTask(task);
+    setShowTimeModal(true);
   };
 
   return (
     <div>
       <h1>{reportTitle}</h1>
-
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '1em' }}>
-        {/* Assignee Filter */}
-        <div className="dropdown-container" ref={assigneeRef}>
-          <div className="dropdown-header" onClick={() => setAssigneeDropdownOpen(prev => !prev)}>
-            Assignee ▼
-          </div>
-          {assigneeDropdownOpen && (
-            <div className="dropdown-menu">
-              {users.map((u) => (
-                <label key={u.id}>
-                  <input
-                    type="checkbox"
-                    checked={selectedAssignees.includes(u.id)}
-                    onChange={() => toggleSelection(u.id, selectedAssignees, setSelectedAssignees)}
-                  />
-                  {u.name || u.email}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Status Filter */}
-        <div className="dropdown-container" ref={statusRef}>
-          <div className="dropdown-header" onClick={() => setStatusDropdownOpen(prev => !prev)}>
-            Status ▼
-          </div>
-          {statusDropdownOpen && (
-            <div className="dropdown-menu">
-              {['open', 'in progress', 'resolved'].map((status) => (
-                <label key={status}>
-                  <input
-                    type="checkbox"
-                    checked={selectedStatuses.includes(status)}
-                    onChange={() => toggleSelection(status, selectedStatuses, setSelectedStatuses)}
-                  />
-                  {status}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Transaction Number */}
-        <div>
-          <label>Transaction #</label><br />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={transactionFilter}
-            onChange={(e) => setTransactionFilter(e.target.value)}
-          />
-        </div>
-      </div>
-
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -172,6 +107,10 @@ export default function ReportView() {
               <th>Assignee</th>
               <th>Assigned At</th>
               <th>Action</th>
+              <th>Time Metrics</th>
+              <th style={{ cursor: 'pointer' }} onClick={toggleSortByDate}>
+                Created Date {sortByDate === 'asc' ? '↑' : '↓'}
+              </th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
@@ -186,6 +125,8 @@ export default function ReportView() {
                   <td>{task.assignee_id || 'Unassigned'}</td>
                   <td>{task.assigned_at?.split('T')[0] || '—'}</td>
                   <td><button>✔️</button></td>
+                  <td><button onClick={() => openTimeModal(task)}>View</button></td>
+                  <td>{new Date(task.imported_at).toLocaleDateString()}</td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
@@ -193,11 +134,27 @@ export default function ReportView() {
               ))
             ) : (
               <tr>
-                <td colSpan={reportColumns.length + 5}>No matching tasks</td>
+                <td colSpan={reportColumns.length + 7}>No matching tasks</td>
               </tr>
             )}
           </tbody>
         </table>
+      )}
+
+      {showTimeModal && timeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>⏱ Time Metrics</h3>
+            <ul>
+              <li><strong>Time Open:</strong> {getDurationInDays(timeTask.imported_at, timeTask.assigned_at || timeTask.resolved_at)}</li>
+              <li><strong>Time Assigned:</strong> {getDurationInDays(timeTask.assigned_at, timeTask.resolved_at)}</li>
+              <li><strong>Total Time to Resolve:</strong> {getDurationInDays(timeTask.imported_at, timeTask.resolved_at)}</li>
+            </ul>
+            <div className="modal-actions">
+              <button onClick={() => setShowTimeModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
