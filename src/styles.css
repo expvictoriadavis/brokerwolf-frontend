@@ -208,4 +208,30 @@ body {
   padding: 12px;
   font-size: 14px;
 }
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-header {
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  z-index: 100;
+  width: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
