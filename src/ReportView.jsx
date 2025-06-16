@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   fetchTasks,
@@ -54,6 +53,9 @@ export default function ReportView() {
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [timeTask, setTimeTask] = useState(null);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [activeTask, setActiveTask] = useState(null);
+  const [newNoteText, setNewNoteText] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -82,16 +84,48 @@ export default function ReportView() {
     setSortByDate(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
-  const filteredTasks = tasks.sort((a, b) => {
-    const dateA = new Date(a.imported_at);
-    const dateB = new Date(b.imported_at);
-    return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
-  });
+  const handleAssign = async (taskId, assigneeId) => {
+    await assignTask(taskId, assigneeId);
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === taskId
+          ? {
+              ...t,
+              assignee_id: assigneeId,
+              assigned_at: assigneeId ? new Date().toISOString() : null
+            }
+          : t
+      )
+    );
+  };
 
   const openTimeModal = (task) => {
     setTimeTask(task);
     setShowTimeModal(true);
   };
+
+  const openNoteModal = (task) => {
+    setActiveTask(task);
+    setNewNoteText('');
+    setShowNoteModal(true);
+  };
+
+  const saveNoteToTask = async () => {
+    if (!newNoteText.trim()) return;
+    const note = {
+      user: user?.email || 'anonymous',
+      timestamp: new Date().toISOString(),
+      message: newNoteText.trim()
+    };
+    await updateTaskNote(activeTask.id, note);
+    setShowNoteModal(false);
+  };
+
+  const filteredTasks = tasks.sort((a, b) => {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
+  });
 
   return (
     <div>
@@ -121,23 +155,35 @@ export default function ReportView() {
               filteredTasks.map((task) => (
                 <tr key={task.id}>
                   <td>{getStatus(task)}</td>
-                  <td><button>Add Note</button></td>
-                  <td>{task.assignee_id || 'Unassigned'}</td>
+                  <td>
+                    <button onClick={() => openNoteModal(task)}>Add Note</button>
+                  </td>
+                  <td>
+                    <select
+                      value={task.assignee_id || ''}
+                      onChange={(e) => handleAssign(task.id, e.target.value)}
+                    >
+                      <option value="">Unassigned</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td>{task.assigned_at?.split('T')[0] || '—'}</td>
-                  <td><button>✔️</button></td>
+                  <td><button onClick={() => resolveTask(task.id)}>✔️ Resolve</button></td>
                   <td><button onClick={() => openTimeModal(task)}>View</button></td>
                   <td>
-  {task.created_at
-    ? new Date(task.created_at).toLocaleString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })
-    : '—'}
-</td>
+                    {task.created_at
+                      ? new Date(task.created_at).toLocaleString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        })
+                      : '—'}
+                  </td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
@@ -157,9 +203,9 @@ export default function ReportView() {
           <div className="modal-box">
             <h3>⏱ Time Metrics</h3>
             <ul>
-              <li><strong>Time Open:</strong> {getDurationInDays(timeTask.imported_at, timeTask.assigned_at || timeTask.resolved_at)}</li>
+              <li><strong>Time Open:</strong> {getDurationInDays(timeTask.created_at, timeTask.assigned_at || timeTask.resolved_at)}</li>
               <li><strong>Time Assigned:</strong> {getDurationInDays(timeTask.assigned_at, timeTask.resolved_at)}</li>
-              <li><strong>Total Time to Resolve:</strong> {getDurationInDays(timeTask.imported_at, timeTask.resolved_at)}</li>
+              <li><strong>Total Time to Resolve:</strong> {getDurationInDays(timeTask.created_at, timeTask.resolved_at)}</li>
             </ul>
             <div className="modal-actions">
               <button onClick={() => setShowTimeModal(false)}>Close</button>
