@@ -158,7 +158,8 @@ export default function ReportView() {
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <tr key={task.id}>
-                  <td>{task.status}</td>
+                  <td style={{ color: task.resolved ? 'green' : 'orange', fontWeight: 'bold' }}>
+  {task.resolved ? 'resolved' : 'open'}
                   <td>
                     <input
                       value={noteUpdates[task.id] || ''}
