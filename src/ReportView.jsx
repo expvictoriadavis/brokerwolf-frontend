@@ -13,66 +13,29 @@ const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
     name: 'Missing TRX',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
+      'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
+      'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
+      'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
     name: 'Missing BW',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'explanation',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'SalesPriceVolume',
-      'ActualCloseDate',
-      'LifecycleStatus',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'CoAgentPercentage',
-      'NCIBAS'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
+      'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric',
+      'MemberFullName', 'SourceSystemModificationTimestamp', 'SalesPriceVolume',
+      'ActualCloseDate', 'LifecycleStatus', 'UnitsBuyer', 'UnitsSeller',
+      'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
     ]
   },
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
     name: 'Multi Trade',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'ErrorType',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'Subtrade',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric',
+      'MemberFullName', 'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate',
+      'StatusCode', 'Subtrade', 'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent',
+      'Percentage', 'Amount'
     ]
   }
 };
@@ -87,7 +50,9 @@ export default function ReportView() {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [noteUpdates, setNoteUpdates] = useState({});
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [activeTask, setActiveTask] = useState(null);
+  const [newNoteText, setNewNoteText] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -100,27 +65,34 @@ export default function ReportView() {
     loadData();
   }, [id]);
 
-  const handleNoteChange = (taskId, text) => {
-    setNoteUpdates(prev => ({ ...prev, [taskId]: text }));
+  const openNoteModal = (task) => {
+    setActiveTask(task);
+    setNewNoteText('');
+    setShowNoteModal(true);
   };
 
-  const handleSaveNote = async (taskId) => {
-    const message = noteUpdates[taskId]?.trim();
-    if (!message) return;
-
+  const saveNoteToTask = async () => {
+    if (!newNoteText.trim()) return;
     const note = {
       user: user?.email || 'anonymous',
       timestamp: new Date().toISOString(),
-      message,
+      message: newNoteText.trim()
     };
-    await updateTaskNote(taskId, note);
-    setNoteUpdates(prev => ({ ...prev, [taskId]: '' }));
+    await updateTaskNote(activeTask.id, note);
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === activeTask.id
+          ? { ...t, notes: [...(t.notes || []), note] }
+          : t
+      )
+    );
+    setShowNoteModal(false);
   };
 
   const handleResolve = async (taskId) => {
     await resolveTask(taskId);
     setTasks(prev =>
-      prev.map(t => t.id === taskId ? { ...t, status: 'resolved' } : t)
+      prev.map(t => t.id === taskId ? { ...t, resolved: true } : t)
     );
   };
 
@@ -143,7 +115,6 @@ export default function ReportView() {
         <table className="task-table">
           <thead>
             <tr>
-              {/* Move interactive columns to the front */}
               <th>Status</th>
               <th>Note</th>
               <th>Assignee</th>
@@ -159,14 +130,10 @@ export default function ReportView() {
               tasks.map((task) => (
                 <tr key={task.id}>
                   <td style={{ color: task.resolved ? 'green' : 'orange', fontWeight: 'bold' }}>
-  {task.resolved ? 'resolved' : 'open'}
+                    {task.resolved ? 'resolved' : 'open'}
+                  </td>
                   <td>
-                    <input
-                      value={noteUpdates[task.id] || ''}
-                      onChange={e => handleNoteChange(task.id, e.target.value)}
-                      placeholder="Add note"
-                    />
-                    <button onClick={() => handleSaveNote(task.id)}>💾</button>
+                    <button onClick={() => openNoteModal(task)}>Add Note</button>
                   </td>
                   <td>
                     <select
@@ -195,6 +162,29 @@ export default function ReportView() {
             )}
           </tbody>
         </table>
+      )}
+
+      {showNoteModal && activeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>📝 Notes</h3>
+            {(activeTask.notes || []).map((note, idx) => (
+              <div key={idx} className="note-entry">
+                <strong>{note.user}</strong> — {new Date(note.timestamp).toLocaleString()}
+                <div>{note.message}</div>
+              </div>
+            ))}
+            <textarea
+              placeholder="Add a note..."
+              value={newNoteText}
+              onChange={(e) => setNewNoteText(e.target.value)}
+            />
+            <div className="modal-actions">
+              <button onClick={() => setShowNoteModal(false)}>Close</button>
+              <button onClick={saveNoteToTask}>Save Note</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
