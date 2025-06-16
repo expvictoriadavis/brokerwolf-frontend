@@ -10,34 +10,9 @@ import {
 import { useAuth } from './AuthContext';
 
 const reportMetadata = {
-  '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
-    name: 'Missing TRX',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
-      'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
-      'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
-    ]
-  },
-  '24add57e-1b40-4a49-b586-ccc2dff4faad': {
-    name: 'Missing BW',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric',
-      'MemberFullName', 'SourceSystemModificationTimestamp', 'SalesPriceVolume',
-      'ActualCloseDate', 'LifecycleStatus', 'UnitsBuyer', 'UnitsSeller',
-      'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
-    ]
-  },
-  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
-    name: 'Multi Trade',
-    columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric',
-      'MemberFullName', 'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate',
-      'StatusCode', 'Subtrade', 'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent',
-      'Percentage', 'Amount'
-    ]
-  }
+  '16da88e2-2721-44ae-a0f3-5706dcde7e98': { name: 'Missing TRX', columns: [ /* ... */ ] },
+  '24add57e-1b40-4a49-b586-ccc2dff4faad': { name: 'Missing BW', columns: [ /* ... */ ] },
+  'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': { name: 'Multi Trade', columns: [ /* ... */ ] }
 };
 
 export default function ReportView() {
@@ -82,11 +57,23 @@ export default function ReportView() {
     setTasks(prev =>
       prev.map(t =>
         t.id === activeTask.id
-          ? { ...t, notes: [...(t.notes || []), note] }
+          ? {
+              ...t,
+              notes: parseNotesToArray(t.notes).concat(note)
+            }
           : t
       )
     );
     setShowNoteModal(false);
+  };
+
+  const parseNotesToArray = (notes) => {
+    if (Array.isArray(notes)) return notes;
+    try {
+      return JSON.parse(notes || '[]');
+    } catch {
+      return [];
+    }
   };
 
   const handleResolve = async (taskId) => {
@@ -168,7 +155,7 @@ export default function ReportView() {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>📝 Notes</h3>
-            {(activeTask.notes || []).map((note, idx) => (
+            {parseNotesToArray(activeTask.notes).map((note, idx) => (
               <div key={idx} className="note-entry">
                 <strong>{note.user}</strong> — {new Date(note.timestamp).toLocaleString()}
                 <div>{note.message}</div>
