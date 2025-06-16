@@ -213,6 +213,37 @@ export default function ReportView() {
           </div>
         </div>
       )}
+{showTimeModal && timeTask && (
+  <div className="modal-overlay">
+    <div className="modal-box">
+      <h3>⏱ Time Metrics</h3>
+      ...
+      <div className="modal-actions">
+        <button onClick={() => setShowTimeModal(false)}>Close</button>
+      </div>
+    </div>
+  </div>
+)}
+
+{showNoteModal && activeTask && (
+  <div className="modal-overlay">
+    <div className="modal-box">
+      <h3>📝 Add Note</h3>
+      <textarea
+        value={newNoteText}
+        onChange={(e) => setNewNoteText(e.target.value)}
+        placeholder="Enter your note here..."
+        rows={4}
+        style={{ width: '100%', padding: '8px' }}
+      />
+      <div className="modal-actions" style={{ marginTop: '1rem' }}>
+        <button onClick={saveNoteToTask}>Save Note</button>
+        <button onClick={() => setShowNoteModal(false)} style={{ marginLeft: '10px' }}>Cancel</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
