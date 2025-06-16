@@ -13,66 +13,29 @@ const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
     name: 'Missing TRX',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
+      'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
+      'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
+      'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
     name: 'Missing BW',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'TransactionKeyNumeric',
-      'TransactionNumber',
-      'explanation',
-      'Transaction2KeyNumeric',
-      'Transaction2Number',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'SalesPriceVolume',
-      'ActualCloseDate',
-      'LifecycleStatus',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'CoAgentPercentage',
-      'NCIBAS'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
+      'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric',
+      'MemberFullName', 'SourceSystemModificationTimestamp', 'SalesPriceVolume',
+      'ActualCloseDate', 'LifecycleStatus', 'UnitsBuyer', 'UnitsSeller',
+      'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
     ]
   },
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
     name: 'Multi Trade',
     columns: [
-      'BrokerWolfTransactionKeyNumeric',
-      'Number',
-      'ErrorType',
-      'MemberKeyNumeric',
-      'MemberFullName',
-      'SourceSystemModificationTimestamp',
-      'ClosePrice',
-      'CloseDate',
-      'StatusCode',
-      'Subtrade',
-      'UnitsBuyer',
-      'UnitsSeller',
-      'IsBuyerAgent',
-      'Percentage',
-      'Amount'
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric',
+      'MemberFullName', 'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate',
+      'StatusCode', 'Subtrade', 'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent',
+      'Percentage', 'Amount'
     ]
   }
 };
@@ -98,6 +61,7 @@ export default function ReportView() {
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [transactionFilter, setTransactionFilter] = useState('');
+  const [sortByDate, setSortByDate] = useState('desc');
 
   useEffect(() => {
     const loadData = async () => {
@@ -182,15 +146,25 @@ export default function ReportView() {
     setShowTimeModal(true);
   };
 
-  const filteredTasks = tasks.filter(task => {
-    const status = getStatus(task);
-    const transactionMatch = transactionFilter.trim()
-      ? (task.data_row?.TransactionNumber || '').toString().includes(transactionFilter.trim())
-      : true;
-    const assigneeMatch = selectedAssignees.length === 0 || selectedAssignees.includes(task.assignee_id);
-    const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(status);
-    return transactionMatch && assigneeMatch && statusMatch;
-  });
+  const toggleSortByDate = () => {
+    setSortByDate(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const filteredTasks = tasks
+    .filter(task => {
+      const status = getStatus(task);
+      const transactionMatch = transactionFilter.trim()
+        ? (task.data_row?.TransactionNumber || '').toString().includes(transactionFilter.trim())
+        : true;
+      const assigneeMatch = selectedAssignees.length === 0 || selectedAssignees.includes(task.assignee_id);
+      const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(status);
+      return transactionMatch && assigneeMatch && statusMatch;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.imported_at);
+      const dateB = new Date(b.imported_at);
+      return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
+    });
 
   return (
     <div>
@@ -199,29 +173,53 @@ export default function ReportView() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '1em' }}>
         <div>
-          <label>Assignees:</label><br />
-          <select multiple value={selectedAssignees} onChange={(e) => {
-            const values = Array.from(e.target.selectedOptions, opt => opt.value);
-            setSelectedAssignees(values);
-          }}>
+          <label><strong>Assignees</strong></label><br />
+          <div className="dropdown-filter">
             {users.map(u => (
-              <option key={u.id} value={u.id}>{u.name || u.email}</option>
+              <label key={u.id} style={{ display: 'block' }}>
+                <input
+                  type="checkbox"
+                  value={u.id}
+                  checked={selectedAssignees.includes(u.id)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedAssignees(prev =>
+                      e.target.checked
+                        ? [...prev, value]
+                        : prev.filter(v => v !== value)
+                    );
+                  }}
+                />
+                {u.name || u.email}
+              </label>
             ))}
-          </select>
+          </div>
         </div>
         <div>
-          <label>Status:</label><br />
-          <select multiple value={selectedStatuses} onChange={(e) => {
-            const values = Array.from(e.target.selectedOptions, opt => opt.value);
-            setSelectedStatuses(values);
-          }}>
-            <option value="open">Open</option>
-            <option value="in progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
+          <label><strong>Status</strong></label><br />
+          <div className="dropdown-filter">
+            {['open', 'in progress', 'resolved'].map(status => (
+              <label key={status} style={{ display: 'block' }}>
+                <input
+                  type="checkbox"
+                  value={status}
+                  checked={selectedStatuses.includes(status)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedStatuses(prev =>
+                      e.target.checked
+                        ? [...prev, value]
+                        : prev.filter(v => v !== value)
+                    );
+                  }}
+                />
+                {status}
+              </label>
+            ))}
+          </div>
         </div>
         <div>
-          <label>Transaction Number:</label><br />
+          <label><strong>Transaction Number</strong></label><br />
           <input
             type="text"
             value={transactionFilter}
@@ -242,6 +240,9 @@ export default function ReportView() {
               <th>Assigned At</th>
               <th>Action</th>
               <th>Time Metrics</th>
+              <th style={{ cursor: 'pointer' }} onClick={toggleSortByDate}>
+                Created Date {sortByDate === 'asc' ? '↑' : '↓'}
+              </th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
@@ -275,6 +276,7 @@ export default function ReportView() {
                   <td>
                     <button onClick={() => openTimeModal(task)}>View</button>
                   </td>
+                  <td>{new Date(task.imported_at).toLocaleDateString()}</td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
@@ -282,7 +284,7 @@ export default function ReportView() {
               ))
             ) : (
               <tr>
-                <td colSpan={reportColumns.length + 6}>No matching tasks.</td>
+                <td colSpan={reportColumns.length + 7}>No matching tasks.</td>
               </tr>
             )}
           </tbody>
