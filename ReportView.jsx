@@ -109,7 +109,7 @@ export default function ReportView() {
     if (!message) return;
 
     const note = {
-      user: user?.username || 'anonymous',
+      user: user?.email || 'anonymous',
       timestamp: new Date().toISOString(),
       message,
     };
@@ -143,23 +143,21 @@ export default function ReportView() {
         <table className="task-table">
           <thead>
             <tr>
-              {reportColumns.map((col) => (
-                <th key={col}>{col}</th>
-              ))}
+              {/* 🟨 Moved interaction columns to the front */}
               <th>Status</th>
               <th>Note</th>
               <th>Assignee</th>
               <th>Assigned At</th>
               <th>Action</th>
+              {reportColumns.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <tr key={task.id}>
-                  {reportColumns.map((col) => (
-                    <td key={col}>{task.data_row?.[col] ?? '—'}</td>
-                  ))}
                   <td>{task.status}</td>
                   <td>
                     <input
@@ -184,6 +182,9 @@ export default function ReportView() {
                   <td>
                     <button onClick={() => handleResolve(task.id)}>✔️ Resolve</button>
                   </td>
+                  {reportColumns.map((col) => (
+                    <td key={col}>{task.data_row?.[col] ?? '—'}</td>
+                  ))}
                 </tr>
               ))
             ) : (
