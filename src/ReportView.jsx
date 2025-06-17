@@ -185,6 +185,24 @@ const [filters, setFilters] = useState({
  // [Your current imports stay the same above]
 
   // ...everything you've already shared...
+const getDuration = (start, end) => {
+  if (!start || !end) return '—';
+  const diff = new Date(end) - new Date(start);
+  const days = diff / (1000 * 60 * 60 * 24);
+  return `${days.toFixed(1)} days`;
+};
+
+const formatTimestamp = (timestamp) =>
+  timestamp
+    ? new Date(timestamp).toLocaleString('en-US', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+    : '—';
 
   return (
     <div>
@@ -316,32 +334,10 @@ const [filters, setFilters] = useState({
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Time Metrics</h3>
-            <p><strong>Created:</strong> {timeTask.created_at ? new Date(timeTask.created_at).toLocaleString('en-US', {
-  year: '2-digit',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-}) : '—'}</p>
-
-            <p><strong>Assigned:</strong> {timeTask.assigned_at ? new Date(timeTask.assigned_at).toLocaleString('en-US', {
-  year: '2-digit',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-}) : '—'}</p>
-
-<p><strong>Resolved:</strong> {timeTask.resolved_at ? new Date(timeTask.resolved_at).toLocaleString('en-US', {
-  year: '2-digit',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-}) : '—'}</p>
+           <p><strong>Created:</strong> {formatTimestamp(timeTask.created_at)}</p>
+<p><strong>Assigned:</strong> {formatTimestamp(timeTask.assigned_at)}</p>
+<p><strong>Resolved:</strong> {formatTimestamp(timeTask.resolved_at)}</p>
+<p><strong>Total Duration:</strong> {getDuration(timeTask.created_at, timeTask.resolved_at)}</p>
             <button onClick={() => setShowTimeModal(false)}>Close</button>
           </div>
         </div>
