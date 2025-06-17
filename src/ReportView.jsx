@@ -31,6 +31,27 @@ const reportMetadata = {
       'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
     ]
   },
+'abc12345-duplicate-or-missing-transactions': {
+    name: 'Duplicate or Missing Transactions',
+    columns: [
+      'ExceptionType',
+      'BrokerWolfTransactionKeyNumeric',
+      'Number',
+      'TransactionNumber',
+      'Transaction2Number',
+      'TransactionKeyNumeric',
+      'Transaction2KeyNumeric',
+      'ListingId',
+      'StreetNumber',
+      'StreetName',
+      'City',
+      'StateOrProvince',
+      'ClosePrice',
+      'CloseDate',
+      'StatusCode',
+      'SourceSystemBrokerWolfTransactionKey'
+    ]
+  },
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
     name: 'Multi Trade Transaction',
     columns: [
