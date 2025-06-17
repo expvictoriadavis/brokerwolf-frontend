@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Select from 'react-select';
 import {
   fetchTasks,
   fetchUsers,
-  fetchTaskNotes,
-  addTaskNote,
+  updateTaskNote,
   resolveTask,
   assignTask
 } from './api';
@@ -51,8 +49,6 @@ export default function ReportView() {
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
-  const [notes, setNotes] = useState([]);
-  const [filters, setFilters] = useState({ status: [], assignee: [], transaction: "" });
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -78,59 +74,29 @@ export default function ReportView() {
     return 'open';
   };
 
-  const handleFilterChange = (type, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [type]: value
-    }));
+  const getDuration = (start, end) => {
+    if (!start || !end) return '—';
+    const diff = new Date(end) - new Date(start);
+    return `${(diff / (1000 * 60 * 60 * 24)).toFixed(1)} days`;
   };
 
-  const resetFilters = () => {
-    setFilters({ status: [], assignee: [], transaction: "" });
-  };
-
-  const statusOptions = [
-    { value: 'open', label: 'Open' },
-    { value: 'in progress', label: 'In Progress' },
-    { value: 'resolved', label: 'Resolved' }
-  ];
-
-  const assigneeOptions = users.map(u => ({
-    value: u.id,
-    label: u.name || u.email
-  }));
-
-  const applyFilters = (taskList) => {
-    return taskList.filter(t => {
-      const status = getStatus(t);
-      const assignee = t.assignee_id;
-      const transactionNumber = t.data_row?.TransactionNumber ?? "";
-
-      const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
-      const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
-      const matchesTransaction = String(transactionNumber).toLowerCase().includes(String(filters.transaction).toLowerCase());
-
-      return matchesStatus && matchesAssignee && matchesTransaction;
-    });
+  const toggleSortByDate = () => {
+    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
   const handleAssign = async (taskId, assigneeId) => {
-    try {
-      await assignTask(taskId, assigneeId);
-      setTasks(prev =>
-        prev.map(t =>
-          t.id === taskId
-            ? {
-                ...t,
-                assignee_id: assigneeId || null,
-                assigned_at: assigneeId ? new Date().toISOString() : null
-              }
-            : t
-        )
-      );
-    } catch (err) {
-      alert("Assign failed: " + err.message);
-    }
+    await assignTask(taskId, assigneeId);
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === taskId
+          ? {
+              ...t,
+              assignee_id: assigneeId,
+              assigned_at: assigneeId ? new Date().toISOString() : null
+            }
+          : t
+      )
+    );
   };
 
   const openTimeModal = (task) => {
@@ -138,11 +104,9 @@ export default function ReportView() {
     setShowTimeModal(true);
   };
 
-  const openNoteModal = async (task) => {
+  const openNoteModal = (task) => {
     setActiveTask(task);
     setNewNoteText('');
-    const notesData = await fetchTaskNotes(task.id);
-    setNotes(notesData || []);
     setShowNoteModal(true);
   };
 
@@ -151,32 +115,25 @@ export default function ReportView() {
 
     const note = {
       user: user?.email || 'anonymous',
+      timestamp: new Date().toISOString(),
       message: newNoteText.trim()
     };
 
-    await addTaskNote(activeTask.id, note);
+    await updateTaskNote(activeTask.id, note);
 
-    setNotes(prev => [...prev, {
-      ...note,
-      created_at: new Date().toISOString()
-    }]);
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === activeTask.id
+          ? { ...t, notes: [...(t.notes || []), note] }
+          : t
+      )
+    );
 
     setShowNoteModal(false);
     setNewNoteText('');
   };
 
-  const getDuration = (start, end) => {
-    if (!start || !end) return '—';
-    const diff = new Date(end) - new Date(start);
-    const days = diff / (1000 * 60 * 60 * 24);
-    return `${days.toFixed(1)} days`;
-  };
-
-  const toggleSortByDate = () => {
-    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
-  };
-
-  const filteredTasks = applyFilters(tasks).sort((a, b) => {
+  const filteredTasks = tasks.sort((a, b) => {
     const dateA = new Date(a.created_at);
     const dateB = new Date(b.created_at);
     return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
@@ -185,43 +142,6 @@ export default function ReportView() {
   return (
     <div>
       <h1>{reportTitle}</h1>
-
-      {/* Filter Controls */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "flex-end" }}>
-        <div style={{ minWidth: "200px" }}>
-          <label>Status:</label>
-          <Select
-            options={statusOptions}
-            isMulti
-            menuPortalTarget={document.body}
-            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-            value={statusOptions.filter(opt => filters.status.includes(opt.value))}
-            onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
-          />
-        </div>
-        <div style={{ minWidth: "250px" }}>
-          <label>Assignee:</label>
-          <Select
-            options={assigneeOptions}
-            isMulti
-            menuPortalTarget={document.body}
-            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-            value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
-            onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
-          />
-        </div>
-        <div>
-          <label>Transaction Number:</label><br />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={filters.transaction}
-            onChange={(e) => handleFilterChange("transaction", e.target.value)}
-          />
-        </div>
-        <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
-      </div>
-
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -248,7 +168,7 @@ export default function ReportView() {
                 <tr key={task.id}>
                   <td>{getStatus(task)}</td>
                   <td>
-                    <button onClick={() => openNoteModal(task)}>Notes</button>
+                    <button onClick={() => openNoteModal(task)}>Add Note</button>
                   </td>
                   <td>
                     <select
@@ -269,7 +189,7 @@ export default function ReportView() {
                       ? new Date(task.created_at).toLocaleString('en-US', {
                           month: '2-digit',
                           day: '2-digit',
-                          year: 'numeric',
+                          year: 'numeric',                 
                         })
                       : '—'}
                   </td>
@@ -287,7 +207,7 @@ export default function ReportView() {
         </table>
       )}
 
-      {/* Time Modal */}
+      {/* Time Metrics Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
@@ -309,13 +229,14 @@ export default function ReportView() {
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
             <h3>📝 Notes</h3>
-            {notes.length > 0 ? (
+
+            {Array.isArray(activeTask.notes) && activeTask.notes.length > 0 ? (
               <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
-                {notes.map((note, index) => (
+                {activeTask.notes.map((note, index) => (
                   <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '8px', borderRadius: '5px' }}>
                     <strong>{note.user || 'anonymous'}</strong> —{' '}
-                    {note.created_at
-                      ? new Date(note.created_at).toLocaleString()
+                    {note.timestamp
+                      ? new Date(note.timestamp).toLocaleString()
                       : 'No timestamp'}
                     <div>{note.message}</div>
                   </div>
@@ -324,6 +245,7 @@ export default function ReportView() {
             ) : (
               <p>No notes yet.</p>
             )}
+
             <textarea
               value={newNoteText}
               onChange={(e) => setNewNoteText(e.target.value)}
