@@ -11,7 +11,7 @@ import { useAuth } from './AuthContext';
 
 const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
-    name: 'Missing TRX',
+    name: 'Missing Transaction TRX',
     columns: [
       'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
       'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
@@ -20,7 +20,7 @@ const reportMetadata = {
     ]
   },
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
-    name: 'Missing BW',
+    name: 'Missing Transaction BW',
     columns: [
       'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
       'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric',
@@ -30,7 +30,7 @@ const reportMetadata = {
     ]
   },
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
-    name: 'Multi Trade',
+    name: 'Multi Trade Transaction',
     columns: [
       'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric',
       'MemberFullName', 'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate',

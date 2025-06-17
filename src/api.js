@@ -13,34 +13,40 @@ export async function fetchTasks(reportId) {
   }
 
   const res = await fetch(`${API_BASE_URL}${path}`);
-  if (!res.ok) throw new Error('Failed to fetch tasks');
+  if (!res.ok) throw new Error("Failed to fetch tasks");
   const data = await res.json();
   return { tasks: data.rows };
 }
 
 export async function assignTask(taskId, assigneeId) {
   const res = await fetch(`${API_BASE_URL}/task/${taskId}/assign`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ assignee_id: assigneeId }),
   });
-  if (!res.ok) throw new Error('Failed to assign task');
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    console.error("❌ Assign failed:", error);
+    throw new Error(error?.detail || "Failed to assign task");
+  }
+
   return await res.json();
 }
 
 export async function fetchUsers() {
   const res = await fetch(`${API_BASE_URL}/users`);
-  if (!res.ok) throw new Error('Failed to fetch users');
+  if (!res.ok) throw new Error("Failed to fetch users");
   return await res.json();
 }
 
 export async function resolveTask(taskId) {
   const res = await fetch(`${API_BASE_URL}/task/${taskId}/status`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status: "resolved" }),
   });
-  if (!res.ok) throw new Error('Failed to resolve task');
+  if (!res.ok) throw new Error("Failed to resolve task");
   return await res.json();
 }
 
@@ -52,9 +58,9 @@ export async function fetchTaskNotes(taskId) {
 
 export async function addTaskNote(taskId, note) {
   const res = await fetch(`${API_BASE_URL}/task/${taskId}/notes`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(note)
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
   });
   if (!res.ok) throw new Error("Failed to add note");
   return await res.json();
@@ -70,7 +76,7 @@ export async function approveUser(email) {
   const res = await fetch(`${API_BASE_URL}/users/approve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email }),
   });
   if (!res.ok) throw new Error("Approval failed");
   return await res.json();
@@ -78,8 +84,8 @@ export async function approveUser(email) {
 
 export async function triggerImportData() {
   const res = await fetch(`${API_BASE_URL}/import_data`, {
-    method: 'POST',
+    method: "POST",
   });
-  if (!res.ok) throw new Error('Failed to trigger import');
+  if (!res.ok) throw new Error("Failed to trigger import");
   return await res.json();
 }
