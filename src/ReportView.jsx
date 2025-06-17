@@ -205,23 +205,31 @@ export default function ReportView() {
           />
         </div>
         <div style={{ minWidth: "250px" }}>
-          <label>Transaction Number:</label>
-          <div className="react-select__control" style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '4px', padding: '6px 12px', height: '38px' }}>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={filters.transaction}
-              onChange={(e) => handleFilterChange("transaction", e.target.value)}
-              style={{
-                border: 'none',
-                outline: 'none',
-                width: '100%',
-                fontSize: '14px',
-                background: 'transparent'
-              }}
-            />
-          </div>
-        </div>
+  <label>Transaction Number:</label>
+  <div className="react-select__control" style={{
+    display: 'flex',
+    alignItems: 'center',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    padding: '6px 12px',
+    height: '38px'
+  }}>
+    <input
+      type="text"
+      placeholder="Search..."
+      value={filters.transaction}
+      onChange={(e) => handleFilterChange("transaction", e.target.value)}
+      style={{
+        border: 'none',
+        outline: 'none',
+        width: '100%',
+        fontSize: '14px',
+        background: 'transparent',
+        height: '100%' // ✅ make sure it stretches to match container height
+      }}
+    />
+  </div>
+</div>
         <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
       </div>
 
@@ -300,9 +308,32 @@ export default function ReportView() {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Time Metrics</h3>
-            <p><strong>Created:</strong> {timeTask.created_at}</p>
-            <p><strong>Assigned:</strong> {timeTask.assigned_at || '—'}</p>
-            <p><strong>Resolved:</strong> {timeTask.resolved_at || '—'}</p>
+            <p><strong>Created:</strong> {timeTask.created_at ? new Date(timeTask.created_at).toLocaleString('en-US', {
+  year: '2-digit',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}) : '—'}</p>
+
+            <p><strong>Assigned:</strong> {timeTask.assigned_at ? new Date(timeTask.assigned_at).toLocaleString('en-US', {
+  year: '2-digit',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}) : '—'}</p>
+
+<p><strong>Resolved:</strong> {timeTask.resolved_at ? new Date(timeTask.resolved_at).toLocaleString('en-US', {
+  year: '2-digit',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}) : '—'}</p>
             <button onClick={() => setShowTimeModal(false)}>Close</button>
           </div>
         </div>
