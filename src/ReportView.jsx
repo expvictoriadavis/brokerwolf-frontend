@@ -220,3 +220,7 @@ export default function ReportView() {
         </div>
         <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
       </div>
+)}
+    </div>
+  );
+}
