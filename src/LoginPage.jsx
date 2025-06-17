@@ -12,14 +12,23 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const checkApprovalAndNavigate = async (userEmail) => {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+
+    // ✅ Allow Victoria to bypass approval
+    if (normalizedEmail === 'victoria.davis@exprealty.net') {
+      return navigate('/dashboard');
+    }
+
     const { data, error } = await supabase
       .from('brokerwolfapp_users')
       .select('*')
-      .ilike('email', userEmail)
+      .ilike('email', normalizedEmail);
 
-const approvedUser = data?.find(u => u.approved === true);
+    console.log('Approval check result:', data, 'Error:', error);
 
-    if (error || !data?.length) {
+    const approvedUser = data?.find(u => u.approved === true);
+
+    if (error || !approvedUser) {
       setMessage('Your account is not yet approved. Please contact Victoria.');
       await supabase.auth.signOut();
       logout();
@@ -33,7 +42,10 @@ const approvedUser = data?.find(u => u.approved === true);
     setStatus('loading');
     setMessage('');
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password
+    });
 
     if (error) {
       setStatus('error');
@@ -48,7 +60,10 @@ const approvedUser = data?.find(u => u.approved === true);
     setStatus('loading');
     setMessage('');
 
-    const { error: signupError } = await supabase.auth.signUp({ email, password });
+    const { error: signupError, data: signupData } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password
+    });
 
     if (signupError) {
       if (signupError.message.includes('User already registered')) {
@@ -60,8 +75,12 @@ const approvedUser = data?.find(u => u.approved === true);
       return;
     }
 
-    // Add to approval queue
-    await supabase.from('brokerwolfapp_users').insert({ email, approved: false });
+    // Insert into approval table
+    await supabase.from('brokerwolfapp_users').insert({
+      email: email.trim().toLowerCase(),
+      approved: false,
+      is_admin: false
+    });
 
     setMessage('Account created! Awaiting admin approval.');
     setStatus('idle');
