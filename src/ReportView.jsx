@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Select from 'react-select';
 import {
   fetchTasks,
   fetchUsers,
-  updateTaskNote,
+  addTaskNote,
+  fetchTaskNotes,
   resolveTask,
   assignTask
 } from './api';
@@ -49,6 +51,7 @@ export default function ReportView() {
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [filters, setFilters] = useState({ status: [], assignee: [], transaction: "" });
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -74,29 +77,59 @@ export default function ReportView() {
     return 'open';
   };
 
-  const getDuration = (start, end) => {
-    if (!start || !end) return '—';
-    const diff = new Date(end) - new Date(start);
-    return `${(diff / (1000 * 60 * 60 * 24)).toFixed(1)} days`;
+  const handleFilterChange = (type, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [type]: value
+    }));
   };
 
-  const toggleSortByDate = () => {
-    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
+  const resetFilters = () => {
+    setFilters({ status: [], assignee: [], transaction: "" });
+  };
+
+  const statusOptions = [
+    { value: 'open', label: 'Open' },
+    { value: 'in progress', label: 'In Progress' },
+    { value: 'resolved', label: 'Resolved' }
+  ];
+
+  const assigneeOptions = users.map(u => ({
+    value: u.id,
+    label: u.name || u.email
+  }));
+
+  const applyFilters = (taskList) => {
+    return taskList.filter(t => {
+      const status = getStatus(t);
+      const assignee = t.assignee_id;
+      const transactionNumber = t.data_row?.TransactionNumber ?? "";
+
+      const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
+      const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
+      const matchesTransaction = String(transactionNumber).toLowerCase().includes(String(filters.transaction).toLowerCase());
+
+      return matchesStatus && matchesAssignee && matchesTransaction;
+    });
   };
 
   const handleAssign = async (taskId, assigneeId) => {
-    await assignTask(taskId, assigneeId);
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? {
-              ...t,
-              assignee_id: assigneeId,
-              assigned_at: assigneeId ? new Date().toISOString() : null
-            }
-          : t
-      )
-    );
+    try {
+      await assignTask(taskId, assigneeId);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === taskId
+            ? {
+                ...t,
+                assignee_id: assigneeId || null,
+                assigned_at: assigneeId ? new Date().toISOString() : null
+              }
+            : t
+        )
+      );
+    } catch (err) {
+      alert("Assign failed: " + err.message);
+    }
   };
 
   const openTimeModal = (task) => {
@@ -104,9 +137,11 @@ export default function ReportView() {
     setShowTimeModal(true);
   };
 
-  const openNoteModal = (task) => {
+  const openNoteModal = async (task) => {
     setActiveTask(task);
     setNewNoteText('');
+    const notesData = await fetchTaskNotes(task.id);
+    setActiveTask(prev => ({ ...prev, notes: notesData }));
     setShowNoteModal(true);
   };
 
@@ -119,7 +154,7 @@ export default function ReportView() {
       message: newNoteText.trim()
     };
 
-    await updateTaskNote(activeTask.id, note);
+    await addTaskNote(activeTask.id, note);
 
     setTasks(prev =>
       prev.map(t =>
@@ -133,7 +168,7 @@ export default function ReportView() {
     setNewNoteText('');
   };
 
-  const filteredTasks = tasks.sort((a, b) => {
+  const filteredTasks = applyFilters(tasks).sort((a, b) => {
     const dateA = new Date(a.created_at);
     const dateB = new Date(b.created_at);
     return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
@@ -142,126 +177,46 @@ export default function ReportView() {
   return (
     <div>
       <h1>{reportTitle}</h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <table className="task-table">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Note</th>
-              <th>Assignee</th>
-              <th>Assigned At</th>
-              <th>Action</th>
-              <th>Time Metrics</th>
-              <th style={{ cursor: 'pointer' }} onClick={toggleSortByDate}>
-                Created Date {sortByDate === 'asc' ? '↑' : '↓'}
-              </th>
-              <th>Exception Type</th>
-              {reportColumns.map((col) => (
-                <th key={col}>{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
-                <tr key={task.id}>
-                  <td>{getStatus(task)}</td>
-                  <td>
-                    <button onClick={() => openNoteModal(task)}>Add Note</button>
-                  </td>
-                  <td>
-                    <select
-                      value={task.assignee_id || ''}
-                      onChange={(e) => handleAssign(task.id, e.target.value)}
-                    >
-                      <option value="">Unassigned</option>
-                      {users.map(u => (
-                        <option key={u.id} value={u.id}>{u.name || u.email}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>{task.assigned_at?.split('T')[0] || '—'}</td>
-                  <td><button onClick={() => resolveTask(task.id)}>✔️ Resolve</button></td>
-                  <td><button onClick={() => openTimeModal(task)}>View</button></td>
-                  <td>
-                    {task.created_at
-                      ? new Date(task.created_at).toLocaleString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',                 
-                        })
-                      : '—'}
-                  </td>
-                  <td>{task.data_row?.ExceptionsType ?? '—'}</td>
-                  {reportColumns.map((col) => (
-                    <td key={col}>{task.data_row?.[col] ?? '—'}</td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={reportColumns.length + 7}>No matching tasks</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-
-      {/* Time Metrics Modal */}
-      {showTimeModal && timeTask && (
-        <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
-            <h3>⏱ Time Metrics</h3>
-            <ul>
-              <li><strong>Created → Assigned:</strong> {getDuration(timeTask.created_at, timeTask.assigned_at)}</li>
-              <li><strong>Assigned → Resolved:</strong> {getDuration(timeTask.assigned_at, timeTask.resolved_at)}</li>
-              <li><strong>Created → Resolved:</strong> {getDuration(timeTask.created_at, timeTask.resolved_at)}</li>
-            </ul>
-            <div className="modal-actions">
-              <button onClick={() => setShowTimeModal(false)}>Close</button>
-            </div>
-          </div>
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "flex-end" }}>
+        <div style={{ minWidth: "200px" }}>
+          <label>Status:</label>
+          <Select
+            options={statusOptions}
+            isMulti
+            menuPortalTarget={document.body}
+            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+            value={statusOptions.filter(opt => filters.status.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
+          />
         </div>
-      )}
-
-      {/* Notes Modal */}
-      {showNoteModal && activeTask && (
-        <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
-            <h3>📝 Notes</h3>
-
-            {Array.isArray(activeTask.notes) && activeTask.notes.length > 0 ? (
-              <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
-                {activeTask.notes.map((note, index) => (
-                  <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '8px', borderRadius: '5px' }}>
-                    <strong>{note.user || 'anonymous'}</strong> —{' '}
-                    {note.timestamp
-                      ? new Date(note.timestamp).toLocaleString()
-                      : 'No timestamp'}
-                    <div>{note.message}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>No notes yet.</p>
-            )}
-
-            <textarea
-              value={newNoteText}
-              onChange={(e) => setNewNoteText(e.target.value)}
-              placeholder="Add a note..."
-              rows={4}
-              style={{ width: '100%', padding: '8px' }}
+        <div style={{ minWidth: "250px" }}>
+          <label>Assignee:</label>
+          <Select
+            options={assigneeOptions}
+            isMulti
+            menuPortalTarget={document.body}
+            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+            value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
+          />
+        </div>
+        <div style={{ minWidth: "250px" }}>
+          <label>Transaction Number:</label>
+          <div className="react-select__control" style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '4px', padding: '6px 12px', height: '38px' }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={filters.transaction}
+              onChange={(e) => handleFilterChange("transaction", e.target.value)}
+              style={{
+                border: 'none',
+                outline: 'none',
+                width: '100%',
+                fontSize: '14px',
+                background: 'transparent'
+              }}
             />
-            <div className="modal-actions" style={{ marginTop: '1rem' }}>
-              <button onClick={() => setShowNoteModal(false)}>Close</button>
-              <button onClick={saveNoteToTask} style={{ marginLeft: '10px' }}>Save Note</button>
-            </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
+        <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
+      </div>
