@@ -15,8 +15,9 @@ export default function LoginPage() {
     const { data, error } = await supabase
       .from('brokerwolfapp_users')
       .select('*')
-      .eq('email', userEmail)
-      .eq('approved', true);
+      .ilike('email', userEmail)
+
+const approvedUser = data?.find(u => u.approved === true);
 
     if (error || !data?.length) {
       setMessage('Your account is not yet approved. Please contact Victoria.');
