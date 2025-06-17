@@ -157,6 +157,7 @@ export default function ReportView() {
               <th style={{ cursor: 'pointer' }} onClick={toggleSortByDate}>
                 Created Date {sortByDate === 'asc' ? '↑' : '↓'}
               </th>
+              <th>Exception Type</th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
@@ -193,6 +194,7 @@ export default function ReportView() {
                         })
                       : '—'}
                   </td>
+                  <td>{task.data_row?.ExceptionsType ?? '—'}</td>
                   {reportColumns.map((col) => (
                     <td key={col}>{task.data_row?.[col] ?? '—'}</td>
                   ))}
