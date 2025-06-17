@@ -174,6 +174,10 @@ export default function ReportView() {
     return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
   });
 
+ // [Your current imports stay the same above]
+
+  // ...everything you've already shared...
+
   return (
     <div>
       <h1>{reportTitle}</h1>
@@ -220,7 +224,95 @@ export default function ReportView() {
         </div>
         <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
       </div>
-)}
+
+      {!loading && (
+        <table className="task-table">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Exception Type</th>
+              {reportColumns.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
+              <th>Status</th>
+              <th>Assignee</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTasks.map(task => (
+              <tr key={task.id}>
+                <td>{task.created_at ? new Date(task.created_at).toLocaleDateString() : '—'}</td>
+                <td>{task.data_row?.ExceptionsType ?? '—'}</td>
+                {reportColumns.map((col) => (
+                  <td key={col}>{task.data_row?.[col] ?? '—'}</td>
+                ))}
+                <td>{getStatus(task)}</td>
+                <td>
+                  <select
+                    value={task.assignee_id || ''}
+                    onChange={(e) => handleAssign(task.id, e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <button onClick={() => openNoteModal(task)}>View</button>
+                </td>
+                <td>
+                  <button onClick={() => openTimeModal(task)}>Time</button>
+                  {!task.resolved && (
+                    <button onClick={() => resolveTask(task.id)}>Resolve</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {showTimeModal && timeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Time Metrics</h3>
+            <p><strong>Created:</strong> {timeTask.created_at}</p>
+            <p><strong>Assigned:</strong> {timeTask.assigned_at || '—'}</p>
+            <p><strong>Resolved:</strong> {timeTask.resolved_at || '—'}</p>
+            <button onClick={() => setShowTimeModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {showNoteModal && activeTask && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Notes</h3>
+            <ul>
+              {(activeTask.notes || []).map((note, index) => (
+                <li key={index}>
+                  <strong>{note.user}</strong> – {new Date(note.timestamp).toLocaleString()}
+                  <div>{note.message}</div>
+                </li>
+              ))}
+            </ul>
+            <textarea
+              placeholder="Add a note..."
+              value={newNoteText}
+              onChange={(e) => setNewNoteText(e.target.value)}
+              rows={4}
+              style={{ width: '100%', marginTop: '1rem' }}
+            />
+            <div className="modal-actions">
+              <button onClick={saveNoteToTask}>Save</button>
+              <button onClick={() => setShowNoteModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
