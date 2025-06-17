@@ -9,6 +9,7 @@ const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Agents - TRX' },
   { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Agents - BW' },
   { id: 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b', name: 'Multi Trade' },
+  { id: 'abc12345-duplicate-or-missing-transactions', name: 'Duplicate or Missing Transactions' } 
 ];
 
 export default function Dashboard() {
