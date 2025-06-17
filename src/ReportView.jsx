@@ -230,24 +230,45 @@ export default function ReportView() {
           <thead>
             <tr>
               <th>Created</th>
+	      <th>Status</th>
+              <th>Assignee</th>
+              <th>Notes</th>
+              <th>Actions</th>
               <th>Exception Type</th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
-              <th>Status</th>
-              <th>Assignee</th>
-              <th>Notes</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredTasks.map(task => (
               <tr key={task.id}>
-                <td>{task.created_at ? new Date(task.created_at).toLocaleDateString() : '—'}</td>
-                <td>{task.data_row?.ExceptionsType ?? '—'}</td>
-                {reportColumns.map((col) => (
-                  <td key={col}>{task.data_row?.[col] ?? '—'}</td>
-                ))}
+               <td>{task.created_at ? new Date(task.created_at).toLocaleDateString() : '—'}</td>
+<td>{getStatus(task)}</td>
+<td>
+  <select
+    value={task.assignee_id || ''}
+    onChange={(e) => handleAssign(task.id, e.target.value)}
+  >
+    <option value="">Unassigned</option>
+    {users.map(u => (
+      <option key={u.id} value={u.id}>{u.name || u.email}</option>
+    ))}
+  </select>
+</td>
+<td>
+  <button onClick={() => openNoteModal(task)}>View</button>
+</td>
+<td>
+  <button onClick={() => openTimeModal(task)}>Time</button>
+  {!task.resolved && (
+    <button onClick={() => resolveTask(task.id)}>Resolve</button>
+  )}
+</td>
+<td>{task.data_row?.ExceptionsType ?? '—'}</td>
+{reportColumns.map((col) => (
+  <td key={col}>{task.data_row?.[col] ?? '—'}</td>
+))}
                 <td>{getStatus(task)}</td>
                 <td>
                   <select
