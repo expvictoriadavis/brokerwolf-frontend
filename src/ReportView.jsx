@@ -180,20 +180,24 @@ export default function ReportView() {
         <div style={{ minWidth: "200px" }}>
           <label>Status:</label>
           <Select
-            options={statusOptions}
-            isMulti
-            value={statusOptions.filter(opt => filters.status.includes(opt.value))}
-            onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
-          />
+  options={statusOptions}
+  isMulti
+  menuPortalTarget={document.body}
+  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+  value={statusOptions.filter(opt => filters.status.includes(opt.value))}
+  onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
+/>
         </div>
         <div style={{ minWidth: "250px" }}>
           <label>Assignee:</label>
           <Select
-            options={assigneeOptions}
-            isMulti
-            value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
-            onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
-          />
+  options={assigneeOptions}
+  isMulti
+  menuPortalTarget={document.body}
+  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+  value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
+  onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
+/>
         </div>
         <div>
           <label>Transaction Number:</label><br />
