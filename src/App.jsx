@@ -7,7 +7,6 @@ import LoginPage from './LoginPage.jsx';
 import ReportView from './ReportView.jsx';
 import Dashboard from './Dashboard.jsx';
 import UserApproval from './UserApproval.jsx';
-import LoginRedirectHandler from './LoginRedirectHandler';
 
 
 function Layout({ children }) {
@@ -80,7 +79,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-  <Route path="/handle-login" element={<LoginRedirectHandler />} />
           {/* Default redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
