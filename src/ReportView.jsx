@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Select from 'react-select';
 import {
   fetchTasks,
   fetchUsers,
@@ -80,25 +81,38 @@ export default function ReportView() {
   const handleFilterChange = (type, value) => {
     setFilters(prev => ({
       ...prev,
-      [type]: Array.isArray(value) ? value : value.target.value
+      [type]: value
     }));
   };
 
+  const resetFilters = () => {
+    setFilters({ status: [], assignee: [], transaction: "" });
+  };
+
+  const statusOptions = [
+    { value: 'open', label: 'Open' },
+    { value: 'in progress', label: 'In Progress' },
+    { value: 'resolved', label: 'Resolved' }
+  ];
+
+  const assigneeOptions = users.map(u => ({
+    value: u.id,
+    label: u.name || u.email
+  }));
+
   const applyFilters = (taskList) => {
-  return taskList.filter(t => {
-    const status = getStatus(t);
-    const assignee = t.assignee_id;
-    const transactionNumber = t.data_row?.TransactionNumber ?? "";
+    return taskList.filter(t => {
+      const status = getStatus(t);
+      const assignee = t.assignee_id;
+      const transactionNumber = t.data_row?.TransactionNumber ?? "";
 
-    const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
-    const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
-    const matchesTransaction = String(transactionNumber).toLowerCase().includes(
-      String(filters.transaction).toLowerCase()
-    );
+      const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
+      const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
+      const matchesTransaction = String(transactionNumber).toLowerCase().includes(String(filters.transaction).toLowerCase());
 
-    return matchesStatus && matchesAssignee && matchesTransaction;
-  });
-};
+      return matchesStatus && matchesAssignee && matchesTransaction;
+    });
+  };
 
   const handleAssign = async (taskId, assigneeId) => {
     await assignTask(taskId, assigneeId);
@@ -161,23 +175,25 @@ export default function ReportView() {
     <div>
       <h1>{reportTitle}</h1>
 
-      {/* Filter controls */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-        <div>
-          <label>Status:</label><br />
-          <select multiple value={filters.status} onChange={e => handleFilterChange("status", Array.from(e.target.selectedOptions, o => o.value))}>
-            <option value="open">Open</option>
-            <option value="in progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
+      {/* Filter Controls */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "flex-end" }}>
+        <div style={{ minWidth: "200px" }}>
+          <label>Status:</label>
+          <Select
+            options={statusOptions}
+            isMulti
+            value={statusOptions.filter(opt => filters.status.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
+          />
         </div>
-        <div>
-          <label>Assignee:</label><br />
-          <select multiple value={filters.assignee} onChange={e => handleFilterChange("assignee", Array.from(e.target.selectedOptions, o => o.value))}>
-            {users.map(u => (
-              <option key={u.id} value={u.id}>{u.name || u.email}</option>
-            ))}
-          </select>
+        <div style={{ minWidth: "250px" }}>
+          <label>Assignee:</label>
+          <Select
+            options={assigneeOptions}
+            isMulti
+            value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
+          />
         </div>
         <div>
           <label>Transaction Number:</label><br />
@@ -185,9 +201,10 @@ export default function ReportView() {
             type="text"
             placeholder="Search..."
             value={filters.transaction}
-            onChange={e => handleFilterChange("transaction", e)}
+            onChange={(e) => handleFilterChange("transaction", e.target.value)}
           />
         </div>
+        <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
       </div>
 
       {loading ? (
@@ -277,7 +294,6 @@ export default function ReportView() {
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
             <h3>📝 Notes</h3>
-
             {notes.length > 0 ? (
               <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
                 {notes.map((note, index) => (
@@ -293,7 +309,6 @@ export default function ReportView() {
             ) : (
               <p>No notes yet.</p>
             )}
-
             <textarea
               value={newNoteText}
               onChange={(e) => setNewNoteText(e.target.value)}
