@@ -168,7 +168,7 @@ export default function ReportView() {
                 <tr key={task.id}>
                   <td>{getStatus(task)}</td>
                   <td>
-                    <button onClick={() => openNoteModal(task)}>Add Note</button>
+                    <button onClick={() => openNoteModal(task)}>Notes</button>
                   </td>
                   <td>
                     <select
