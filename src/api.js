@@ -60,6 +60,22 @@ export async function addTaskNote(taskId, note) {
   return await res.json();
 }
 
+export async function fetchPendingUsers() {
+  const res = await fetch(`${API_BASE_URL}/users/pending`);
+  if (!res.ok) throw new Error("Failed to load pending users");
+  return await res.json();
+}
+
+export async function approveUser(email) {
+  const res = await fetch(`${API_BASE_URL}/users/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+  if (!res.ok) throw new Error("Approval failed");
+  return await res.json();
+}
+
 export async function triggerImportData() {
   const res = await fetch(`${API_BASE_URL}/import_data`, {
     method: 'POST',
