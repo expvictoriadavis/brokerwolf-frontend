@@ -28,33 +28,35 @@ export async function assignTask(taskId, assigneeId) {
   return await res.json();
 }
 
-export async function updateTaskStatus(taskId, status) {
-  const res = await fetch(`${API_BASE_URL}/task/${taskId}/status`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
-  });
-  if (!res.ok) throw new Error('Failed to update task status');
+export async function fetchUsers() {
+  const res = await fetch(`${API_BASE_URL}/users`);
+  if (!res.ok) throw new Error('Failed to fetch users');
   return await res.json();
 }
 
 export async function resolveTask(taskId) {
-  return await updateTaskStatus(taskId, "resolved");
-}
-
-export async function updateTaskNote(taskId, note) {
-  const res = await fetch(`${API_BASE_URL}/task/${taskId}/note`, {
+  const res = await fetch(`${API_BASE_URL}/task/${taskId}/status`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ note }),
+    body: JSON.stringify({ status: "resolved" }),
   });
-  if (!res.ok) throw new Error('Failed to save note');
+  if (!res.ok) throw new Error('Failed to resolve task');
   return await res.json();
 }
 
-export async function fetchUsers() {
-  const res = await fetch(`${API_BASE_URL}/users`);
-  if (!res.ok) throw new Error('Failed to fetch users');
+export async function fetchTaskNotes(taskId) {
+  const res = await fetch(`${API_BASE_URL}/task/${taskId}/notes`);
+  if (!res.ok) throw new Error("Failed to fetch notes");
+  return await res.json();
+}
+
+export async function addTaskNote(taskId, note) {
+  const res = await fetch(`${API_BASE_URL}/task/${taskId}/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(note)
+  });
+  if (!res.ok) throw new Error("Failed to add note");
   return await res.json();
 }
 
@@ -65,22 +67,3 @@ export async function triggerImportData() {
   if (!res.ok) throw new Error('Failed to trigger import');
   return await res.json();
 }
-
-// ✅ New: For user approval flow
-export async function fetchPendingUsers() {
-  const res = await fetch(`${API_BASE_URL}/pending_users`);
-  if (!res.ok) throw new Error("Failed to load pending users");
-  return await res.json();
-}
-
-export async function approveUser(email) {
-  const res = await fetch(`${API_BASE_URL}/approve_user`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
-  });
-  if (!res.ok) throw new Error("Approval failed");
-  return await res.json();
-}
-
-

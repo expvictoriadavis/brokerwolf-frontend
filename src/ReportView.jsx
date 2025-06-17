@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import {
   fetchTasks,
   fetchUsers,
-  updateTaskNote,
+  fetchTaskNotes,
+  addTaskNote,
   resolveTask,
   assignTask
 } from './api';
@@ -49,6 +50,7 @@ export default function ReportView() {
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -104,9 +106,11 @@ export default function ReportView() {
     setShowTimeModal(true);
   };
 
-  const openNoteModal = (task) => {
+  const openNoteModal = async (task) => {
     setActiveTask(task);
     setNewNoteText('');
+    const notesData = await fetchTaskNotes(task.id);
+    setNotes(notesData || []);
     setShowNoteModal(true);
   };
 
@@ -115,19 +119,15 @@ export default function ReportView() {
 
     const note = {
       user: user?.email || 'anonymous',
-      timestamp: new Date().toISOString(),
       message: newNoteText.trim()
     };
 
-    await updateTaskNote(activeTask.id, note);
+    await addTaskNote(activeTask.id, note);
 
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === activeTask.id
-          ? { ...t, notes: [...(t.notes || []), note] }
-          : t
-      )
-    );
+    setNotes(prev => [...prev, {
+      ...note,
+      created_at: new Date().toISOString()
+    }]);
 
     setShowNoteModal(false);
     setNewNoteText('');
@@ -230,13 +230,13 @@ export default function ReportView() {
           <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
             <h3>📝 Notes</h3>
 
-            {Array.isArray(activeTask.notes) && activeTask.notes.length > 0 ? (
+            {notes.length > 0 ? (
               <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
-                {activeTask.notes.map((note, index) => (
+                {notes.map((note, index) => (
                   <div key={index} style={{ backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '8px', borderRadius: '5px' }}>
                     <strong>{note.user || 'anonymous'}</strong> —{' '}
-                    {note.timestamp
-                      ? new Date(note.timestamp).toLocaleString()
+                    {note.created_at
+                      ? new Date(note.created_at).toLocaleString()
                       : 'No timestamp'}
                     <div>{note.message}</div>
                   </div>
