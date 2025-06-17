@@ -51,6 +51,7 @@ export default function ReportView() {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [notes, setNotes] = useState([]);
+  const [filters, setFilters] = useState({ status: [], assignee: [], transaction: "" });
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -76,14 +77,25 @@ export default function ReportView() {
     return 'open';
   };
 
-  const getDuration = (start, end) => {
-    if (!start || !end) return '—';
-    const diff = new Date(end) - new Date(start);
-    return `${(diff / (1000 * 60 * 60 * 24)).toFixed(1)} days`;
+  const handleFilterChange = (type, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [type]: Array.isArray(value) ? value : value.target.value
+    }));
   };
 
-  const toggleSortByDate = () => {
-    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
+  const applyFilters = (taskList) => {
+    return taskList.filter(t => {
+      const status = getStatus(t);
+      const assignee = t.assignee_id;
+      const transactionNumber = t.data_row?.TransactionNumber || "";
+
+      const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
+      const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
+      const matchesTransaction = transactionNumber.toLowerCase().includes(filters.transaction.toLowerCase());
+
+      return matchesStatus && matchesAssignee && matchesTransaction;
+    });
   };
 
   const handleAssign = async (taskId, assigneeId) => {
@@ -133,7 +145,11 @@ export default function ReportView() {
     setNewNoteText('');
   };
 
-  const filteredTasks = tasks.sort((a, b) => {
+  const toggleSortByDate = () => {
+    setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
+  const filteredTasks = applyFilters(tasks).sort((a, b) => {
     const dateA = new Date(a.created_at);
     const dateB = new Date(b.created_at);
     return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
@@ -142,6 +158,36 @@ export default function ReportView() {
   return (
     <div>
       <h1>{reportTitle}</h1>
+
+      {/* Filter controls */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+        <div>
+          <label>Status:</label><br />
+          <select multiple value={filters.status} onChange={e => handleFilterChange("status", Array.from(e.target.selectedOptions, o => o.value))}>
+            <option value="open">Open</option>
+            <option value="in progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div>
+          <label>Assignee:</label><br />
+          <select multiple value={filters.assignee} onChange={e => handleFilterChange("assignee", Array.from(e.target.selectedOptions, o => o.value))}>
+            {users.map(u => (
+              <option key={u.id} value={u.id}>{u.name || u.email}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Transaction Number:</label><br />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={filters.transaction}
+            onChange={e => handleFilterChange("transaction", e)}
+          />
+        </div>
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -189,7 +235,7 @@ export default function ReportView() {
                       ? new Date(task.created_at).toLocaleString('en-US', {
                           month: '2-digit',
                           day: '2-digit',
-                          year: 'numeric',                 
+                          year: 'numeric',
                         })
                       : '—'}
                   </td>
@@ -207,7 +253,7 @@ export default function ReportView() {
         </table>
       )}
 
-      {/* Time Metrics Modal */}
+      {/* Time Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ maxWidth: '600px', padding: '20px' }}>
