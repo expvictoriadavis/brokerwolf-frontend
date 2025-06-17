@@ -3,11 +3,14 @@ import { useParams } from 'react-router-dom';
 import {
   fetchTasks,
   fetchUsers,
-  updateTaskNote,
   resolveTask,
-  assignTask
-} from './api';
-import { useAuth } from './AuthContext';
+  assignTask,
+  addTaskNote,
+  fetchTaskNotes,
+  triggerImportData,
+  fetchPendingUsers,
+  approveUser
+} from './api';import { useAuth } from './AuthContext';
 
 const reportMetadata = {
   '16da88e2-2721-44ae-a0f3-5706dcde7e98': {
@@ -119,7 +122,7 @@ export default function ReportView() {
       message: newNoteText.trim()
     };
 
-    await updateTaskNote(activeTask.id, note);
+    await addTaskNote(activeTask.id, note);
 
     setTasks(prev =>
       prev.map(t =>
