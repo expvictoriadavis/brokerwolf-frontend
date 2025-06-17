@@ -85,18 +85,20 @@ export default function ReportView() {
   };
 
   const applyFilters = (taskList) => {
-    return taskList.filter(t => {
-      const status = getStatus(t);
-      const assignee = t.assignee_id;
-      const transactionNumber = t.data_row?.TransactionNumber || "";
+  return taskList.filter(t => {
+    const status = getStatus(t);
+    const assignee = t.assignee_id;
+    const transactionNumber = t.data_row?.TransactionNumber ?? "";
 
-      const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
-      const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
-      const matchesTransaction = transactionNumber.toLowerCase().includes(filters.transaction.toLowerCase());
+    const matchesStatus = filters.status.length === 0 || filters.status.includes(status);
+    const matchesAssignee = filters.assignee.length === 0 || filters.assignee.includes(assignee);
+    const matchesTransaction = String(transactionNumber).toLowerCase().includes(
+      String(filters.transaction).toLowerCase()
+    );
 
-      return matchesStatus && matchesAssignee && matchesTransaction;
-    });
-  };
+    return matchesStatus && matchesAssignee && matchesTransaction;
+  });
+};
 
   const handleAssign = async (taskId, assigneeId) => {
     await assignTask(taskId, assigneeId);
