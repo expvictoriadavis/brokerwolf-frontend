@@ -51,7 +51,11 @@ export default function ReportView() {
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
-  const [filters, setFilters] = useState({ status: [], assignee: [], transaction: "" });
+const [filters, setFilters] = useState({
+  status: ['open', 'in progress'],  // ✅ pre-select these
+  assignee: [],
+  transaction: ""
+});
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -84,9 +88,13 @@ export default function ReportView() {
     }));
   };
 
-  const resetFilters = () => {
-    setFilters({ status: [], assignee: [], transaction: "" });
-  };
+ const resetFilters = () => {
+  setFilters({
+    status: ['open', 'in progress'],  // ✅ default again
+    assignee: [],
+    transaction: ""
+  });
+};
 
   const statusOptions = [
     { value: 'open', label: 'Open' },
