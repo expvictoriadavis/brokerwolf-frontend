@@ -115,18 +115,22 @@ export default function ReportView() {
   };
 
   const handleAssign = async (taskId, assigneeId) => {
-    await assignTask(taskId, assigneeId);
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? {
-              ...t,
-              assignee_id: assigneeId,
-              assigned_at: assigneeId ? new Date().toISOString() : null
-            }
-          : t
-      )
-    );
+    try {
+      await assignTask(taskId, assigneeId);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === taskId
+            ? {
+                ...t,
+                assignee_id: assigneeId || null,
+                assigned_at: assigneeId ? new Date().toISOString() : null
+              }
+            : t
+        )
+      );
+    } catch (err) {
+      alert("Assign failed: " + err.message);
+    }
   };
 
   const openTimeModal = (task) => {
@@ -161,6 +165,13 @@ export default function ReportView() {
     setNewNoteText('');
   };
 
+  const getDuration = (start, end) => {
+    if (!start || !end) return '—';
+    const diff = new Date(end) - new Date(start);
+    const days = diff / (1000 * 60 * 60 * 24);
+    return `${days.toFixed(1)} days`;
+  };
+
   const toggleSortByDate = () => {
     setSortByDate(prev => (prev === 'asc' ? 'desc' : 'asc'));
   };
@@ -180,24 +191,24 @@ export default function ReportView() {
         <div style={{ minWidth: "200px" }}>
           <label>Status:</label>
           <Select
-  options={statusOptions}
-  isMulti
-  menuPortalTarget={document.body}
-  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-  value={statusOptions.filter(opt => filters.status.includes(opt.value))}
-  onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
-/>
+            options={statusOptions}
+            isMulti
+            menuPortalTarget={document.body}
+            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+            value={statusOptions.filter(opt => filters.status.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("status", selected.map(s => s.value))}
+          />
         </div>
         <div style={{ minWidth: "250px" }}>
           <label>Assignee:</label>
           <Select
-  options={assigneeOptions}
-  isMulti
-  menuPortalTarget={document.body}
-  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-  value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
-  onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
-/>
+            options={assigneeOptions}
+            isMulti
+            menuPortalTarget={document.body}
+            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+            value={assigneeOptions.filter(opt => filters.assignee.includes(opt.value))}
+            onChange={(selected) => handleFilterChange("assignee", selected.map(s => s.value))}
+          />
         </div>
         <div>
           <label>Transaction Number:</label><br />
