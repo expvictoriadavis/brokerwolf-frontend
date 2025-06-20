@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTasks, triggerImportData } from './api';
+import { fetchTasks, triggerImportData, fetchImportSummary } from './api';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
@@ -65,25 +65,37 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadAllReports();
-  }, []);
+useEffect(() => {
+  loadAllReports();
+  fetchInitialImportSummary(); // ✅ new call added here
+}, []);
 
-  const avgDuration = (rows, fromKey, toKey) => {
-    const durations = rows
-      .map(r => {
-        const from = r[fromKey];
-        const to = r[toKey];
-        if (!from || !to) return null;
-        const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24);
-        return duration > 0 ? duration : null;
-      })
-      .filter(Boolean);
+const fetchInitialImportSummary = async () => {
+  try {
+    const summary = await fetchImportSummary(); // from api.js
+    setImportSummary(summary); // contains { results: [...], last_import: ... }
+    setLastImportTime(summary.last_import);
+  } catch (err) {
+    console.error("Failed to load import summary:", err);
+  }
+};
 
-    if (durations.length === 0) return 'N/A';
-    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
-    return `${avg.toFixed(1)} days`;
-  };
+const avgDuration = (rows, fromKey, toKey) => {
+  const durations = rows
+    .map(r => {
+      const from = r[fromKey];
+      const to = r[toKey];
+      if (!from || !to) return null;
+      const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24);
+      return duration > 0 ? duration : null;
+    })
+    .filter(Boolean);
+
+  if (durations.length === 0) return 'N/A';
+  const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+  return `${avg.toFixed(1)} days`;
+};
+
 
   const handleImportReports = async () => {
     setImporting(true);

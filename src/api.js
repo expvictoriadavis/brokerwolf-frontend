@@ -91,3 +91,8 @@ export async function triggerImportData() {
   if (!res.ok) throw new Error("Failed to trigger import");
   return await res.json();
 }
+export async function fetchImportSummary() {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/import_summary`);
+  if (!res.ok) throw new Error("Failed to load import summary");
+  return await res.json();
+}
