@@ -131,15 +131,18 @@ export default function Dashboard() {
       )}
 
       {importSummary?.results?.length > 0 && (
-        <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
-          <strong>Import Summary:</strong>
-          <ul>
-            {importSummary.results.map((r, i) => (
-              <li key={i}>{r.file}: {r.imported_rows} rows imported</li>
-            ))}
-          </ul>
-        </div>
-      )}
+  <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
+    <strong>Import Summary:</strong>
+    <ul>
+      {importSummary.results.map((r, i) => (
+        <li key={i}>
+          {r.file}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
 
       {loading ? (
         <p>Loading metrics...</p>
