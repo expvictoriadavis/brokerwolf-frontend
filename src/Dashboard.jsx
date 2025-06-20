@@ -9,7 +9,7 @@ const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Agents - TRX' },
   { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Agents - BW' },
   { id: 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b', name: 'Multi Trade' },
-  { id: 'abc12345-duplicate-or-missing-transactions', name: 'Duplicate or Missing Transactions' } 
+  { id: 'abc12345-duplicate-or-missing-transactions', name: 'Duplicate or Missing Transactions' }
 ];
 
 export default function Dashboard() {
@@ -27,12 +27,22 @@ export default function Dashboard() {
         const data = await fetchTasks(report.id);
         const tasks = data.tasks || [];
 
-        const assignedTasks = tasks.filter(t => t.assigned_at);
-        const resolvedTasks = tasks.filter(t => t.status === 'resolved');
-        const autoResolved = tasks.filter(t => t.status === 'resolved_by_import');
-        const manualResolved = resolvedTasks.filter(
-          t => !t.resolved_note?.startsWith('Auto-resolved')
-        );
+        let open = 0;
+        let inProgress = 0;
+        let autoResolved = 0;
+        let manualResolved = 0;
+
+        tasks.forEach(t => {
+          if (t.resolved && (t.notes || '').startsWith('Auto-resolved')) {
+            autoResolved += 1;
+          } else if (t.resolved) {
+            manualResolved += 1;
+          } else if (t.assignee_id) {
+            inProgress += 1;
+          } else {
+            open += 1;
+          }
+        });
 
         const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
         const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
@@ -40,11 +50,12 @@ export default function Dashboard() {
         results[report.id] = {
           name: report.name,
           total: tasks.length,
+          open,
+          inProgress,
+          autoResolved,
+          manualResolved,
           avgAssignTime,
-          avgResolveTime,
-          autoResolved: autoResolved.length,
-          manualResolved: manualResolved.length,
-          open: tasks.length - autoResolved.length - manualResolved.length,
+          avgResolveTime
         };
       } catch (err) {
         console.error(`Error loading report ${report.name}:`, err);
@@ -92,20 +103,20 @@ export default function Dashboard() {
 
   const renderChart = (reportId) => {
     const data = metrics[reportId];
-    if (!data || data.total === 0) return null;
+    if (!data) return null;
 
-    const open = data.open;
-    const resolved = data.manualResolved + data.autoResolved;
+    const { open, inProgress, autoResolved, manualResolved } = data;
+    const resolved = autoResolved + manualResolved;
 
     return (
       <Doughnut
         data={{
-          labels: ['Open', 'Resolved'],
+          labels: ['Open', 'In Progress', 'Resolved'],
           datasets: [
             {
-              data: [open, resolved],
-              backgroundColor: ['#facc15', '#4ade80'],
-              borderColor: ['#eab308', '#22c55e'],
+              data: [open, inProgress, resolved],
+              backgroundColor: ['#facc15', '#60a5fa', '#4ade80'],
+              borderColor: ['#eab308', '#3b82f6', '#22c55e'],
               borderWidth: 1,
             },
           ],
@@ -131,18 +142,17 @@ export default function Dashboard() {
       )}
 
       {importSummary?.results?.length > 0 && (
-  <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
-    <strong>Import Summary:</strong>
-    <ul>
-      {importSummary.results.map((r, i) => (
-        <li key={i}>
-          {r.file}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
-
+        <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
+          <strong>Import Summary:</strong>
+          <ul>
+            {importSummary.results.map((r, i) => (
+              <li key={i}>
+                {r.file}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {loading ? (
         <p>Loading metrics...</p>
@@ -167,10 +177,12 @@ export default function Dashboard() {
                   <>
                     <ul style={{ paddingLeft: '16px' }}>
                       <li><strong>Total Tasks:</strong> {m.total}</li>
-                      <li><strong>Avg Time to Assign:</strong> {m.avgAssignTime}</li>
-                      <li><strong>Avg Time to Resolve:</strong> {m.avgResolveTime}</li>
+                      <li><strong>Open:</strong> {m.open}</li>
+                      <li><strong>In Progress:</strong> {m.inProgress}</li>
                       <li><strong>Resolved by Import:</strong> {m.autoResolved}</li>
                       <li><strong>Resolved by Assignee:</strong> {m.manualResolved}</li>
+                      <li><strong>Avg Time to Assign:</strong> {m.avgAssignTime}</li>
+                      <li><strong>Avg Time to Resolve:</strong> {m.avgResolveTime}</li>
                       <li><strong>Completion:</strong> {m.total > 0 ? `${Math.round(((m.manualResolved + m.autoResolved) / m.total) * 100)}%` : '0%'}</li>
                     </ul>
                     <div style={{ maxWidth: '220px', margin: '0 auto' }}>
@@ -188,4 +200,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
