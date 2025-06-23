@@ -96,3 +96,9 @@ export async function fetchImportSummary() {
   if (!res.ok) throw new Error("Failed to load import summary");
   return await res.json();
 }
+export async function fetchAllTasks() {
+  const res = await fetch(`${API_BASE_URL}/records/all`);
+  if (!res.ok) throw new Error("Failed to fetch all records");
+  return await res.json();
+}
+

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { fetchTasks, triggerImportData, fetchImportSummary } from './api';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { fetchAllTasks, triggerImportData, fetchImportSummary } from './api';
+
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -24,8 +26,15 @@ export default function Dashboard() {
     const results = {};
     for (const report of reports) {
       try {
-        const data = await fetchTasks(report.id);
-        const tasks = data.tasks || [];
+        const allData = await fetchTasks(report.id);
+        reports.forEach(report => {
+		let tasks = [];
+
+      if (report.id === '16da88e2-2721-44ae-a0f3-5706dcde7e98') tasks = allData.missing_trx;
+      if (report.id === '24add57e-1b40-4a49-b586-ccc2dff4faad') tasks = allData.missing_bw;
+      if (report.id === 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b') tasks = allData.multi_trade;
+      if (report.id === 'abc12345-duplicate-or-missing-transactions') tasks = allData.bw_ses;
+
 
         let open = 0;
         let inProgress = 0;
