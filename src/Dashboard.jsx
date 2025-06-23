@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTasks, triggerImportData, fetchImportSummary } from './api';
+import { fetchAllTasks, triggerImportData, fetchImportSummary } from './api';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { fetchAllTasks, triggerImportData, fetchImportSummary } from './api';
 
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -22,57 +21,59 @@ export default function Dashboard() {
   const [lastImportTime, setLastImportTime] = useState(null);
 
   const loadAllReports = async () => {
-    setLoading(true);
-    const results = {};
-    for (const report of reports) {
-      try {
-        const allData = await fetchTasks(report.id);
-        reports.forEach(report => {
-		let tasks = [];
+  setLoading(true);
+  const results = {};
+  try {
+    const allData = await fetchAllTasks(); // ✅ batch fetch
+
+    reports.forEach(report => {
+      let tasks = [];
 
       if (report.id === '16da88e2-2721-44ae-a0f3-5706dcde7e98') tasks = allData.missing_trx;
       if (report.id === '24add57e-1b40-4a49-b586-ccc2dff4faad') tasks = allData.missing_bw;
       if (report.id === 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b') tasks = allData.multi_trade;
       if (report.id === 'abc12345-duplicate-or-missing-transactions') tasks = allData.bw_ses;
 
+      let open = 0;
+      let inProgress = 0;
+      let autoResolved = 0;
+      let manualResolved = 0;
 
-        let open = 0;
-        let inProgress = 0;
-        let autoResolved = 0;
-        let manualResolved = 0;
+      tasks.forEach(t => {
+        if (t.resolved && (t.notes || '').startsWith('Auto-resolved')) {
+          autoResolved += 1;
+        } else if (t.resolved) {
+          manualResolved += 1;
+        } else if (t.assignee_id) {
+          inProgress += 1;
+        } else {
+          open += 1;
+        }
+      });
 
-        tasks.forEach(t => {
-          if (t.resolved && (t.notes || '').startsWith('Auto-resolved')) {
-            autoResolved += 1;
-          } else if (t.resolved) {
-            manualResolved += 1;
-          } else if (t.assignee_id) {
-            inProgress += 1;
-          } else {
-            open += 1;
-          }
-        });
+      const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
+      const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
 
-        const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
-        const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
+      results[report.id] = {
+        name: report.name,
+        total: tasks.length,
+        open,
+        inProgress,
+        autoResolved,
+        manualResolved,
+        avgAssignTime,
+        avgResolveTime
+      };
+    });
 
-        results[report.id] = {
-      name: report.name,
-      total: tasks.length,
-      open,
-      inProgress,
-      autoResolved,
-      manualResolved,
-      avgAssignTime,
-      avgResolveTime
-    };
-  });
-} catch (err) {
-  console.error("Error loading all reports:", err);
-}
     setMetrics(results);
+  } catch (err) {
+    console.error("Error loading all reports:", err);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
 
 useEffect(() => {
   loadAllReports();
