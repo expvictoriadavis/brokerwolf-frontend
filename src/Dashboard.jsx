@@ -6,6 +6,14 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+const friendlyNames = {
+  "trx_agent_missing_bw_agent_match": "Missing Transaction - TRX",
+  "bw_agent_missing_trx_agent_match": "Missing Transaction - BW",
+  "deal_sums_mismatch": "Multi Trade",
+  "bw_ses_report": "Duplicate or Missing Transactions"
+};
+
+
 const reports = [
   { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Agents - TRX' },
   { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Agents - BW' },
