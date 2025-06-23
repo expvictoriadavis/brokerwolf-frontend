@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { fetchAllTasks, triggerImportData, fetchImportSummary } from './api';
+import {
+  fetchAllTasks,
+  triggerImportData,
+  fetchImportSummary,
+  fetchAgentMetrics
+} from './api';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -13,107 +17,97 @@ const friendlyNames = {
   "bw_ses_report": "Duplicate or Missing Transactions"
 };
 
-
 const reports = [
-  { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Agents - TRX' },
-  { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Agents - BW' },
+  { id: '16da88e2-2721-44ae-a0f3-5706dcde7e98', name: 'Missing Transaction - TRX' },
+  { id: '24add57e-1b40-4a49-b586-ccc2dff4faad', name: 'Missing Transaction - BW' },
   { id: 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b', name: 'Multi Trade' },
   { id: 'abc12345-duplicate-or-missing-transactions', name: 'Duplicate or Missing Transactions' }
 ];
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState({});
+  const [agentMetrics, setAgentMetrics] = useState({});
   const [loading, setLoading] = useState(true);
   const [importSummary, setImportSummary] = useState(null);
   const [importing, setImporting] = useState(false);
   const [lastImportTime, setLastImportTime] = useState(null);
 
   const loadAllReports = async () => {
-  setLoading(true);
-  const results = {};
-  try {
-    const allData = await fetchAllTasks(); // ✅ batch fetch
+    setLoading(true);
+    const results = {};
+    try {
+      const allData = await fetchAllTasks();
 
-    reports.forEach(report => {
-      let tasks = [];
+      reports.forEach(report => {
+        let tasks = [];
 
-      if (report.id === '16da88e2-2721-44ae-a0f3-5706dcde7e98') tasks = allData.missing_trx;
-      if (report.id === '24add57e-1b40-4a49-b586-ccc2dff4faad') tasks = allData.missing_bw;
-      if (report.id === 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b') tasks = allData.multi_trade;
-      if (report.id === 'abc12345-duplicate-or-missing-transactions') tasks = allData.bw_ses;
+        if (report.id === '16da88e2-2721-44ae-a0f3-5706dcde7e98') tasks = allData.missing_trx;
+        if (report.id === '24add57e-1b40-4a49-b586-ccc2dff4faad') tasks = allData.missing_bw;
+        if (report.id === 'd5cd1b59-6416-4c1d-a021-2d7f9342b49b') tasks = allData.multi_trade;
+        if (report.id === 'abc12345-duplicate-or-missing-transactions') tasks = allData.bw_ses;
 
-      let open = 0;
-      let inProgress = 0;
-      let autoResolved = 0;
-      let manualResolved = 0;
+        let open = 0, inProgress = 0, autoResolved = 0, manualResolved = 0;
 
-      tasks.forEach(t => {
-        if (t.resolved && (t.notes || '').startsWith('Auto-resolved')) {
-          autoResolved += 1;
-        } else if (t.resolved) {
-          manualResolved += 1;
-        } else if (t.assignee_id) {
-          inProgress += 1;
-        } else {
-          open += 1;
-        }
+        tasks.forEach(t => {
+          if (t.resolved && (t.notes || '').startsWith('Auto-resolved')) {
+            autoResolved += 1;
+          } else if (t.resolved) {
+            manualResolved += 1;
+          } else if (t.assignee_id) {
+            inProgress += 1;
+          } else {
+            open += 1;
+          }
+        });
+
+        const avgAssignTime = avgDuration(tasks, 'created_at', 'assigned_at');
+        const avgResolveTime = avgDuration(tasks, 'created_at', 'resolved_at');
+
+        results[report.id] = {
+          name: report.name,
+          total: tasks.length,
+          open,
+          inProgress,
+          autoResolved,
+          manualResolved,
+          avgAssignTime,
+          avgResolveTime
+        };
       });
 
-      const avgAssignTime = avgDuration(tasks, 'created_at', 'assigned_at');
-      const avgResolveTime = avgDuration(tasks, 'created_at', 'resolved_at');
+      setMetrics(results);
+    } catch (err) {
+      console.error("Error loading all reports:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      results[report.id] = {
-        name: report.name,
-        total: tasks.length,
-        open,
-        inProgress,
-        autoResolved,
-        manualResolved,
-        avgAssignTime,
-        avgResolveTime
-      };
-    });
+  const fetchInitialImportSummary = async () => {
+    try {
+      const summary = await fetchImportSummary();
+      setImportSummary(summary);
+      setLastImportTime(summary.last_import);
+    } catch (err) {
+      console.error("Failed to load import summary:", err);
+    }
+  };
 
-    setMetrics(results);
-  } catch (err) {
-    console.error("Error loading all reports:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  const avgDuration = (rows, fromKey, toKey) => {
+    const durations = rows
+      .map(r => {
+        const from = r[fromKey];
+        const to = r[toKey];
+        if (!from || !to) return null;
+        const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24);
+        return duration > 0 ? duration : null;
+      })
+      .filter(Boolean);
 
-
-useEffect(() => {
-  loadAllReports();
-  fetchInitialImportSummary(); // ✅ new call added here
-}, []);
-
-const fetchInitialImportSummary = async () => {
-  try {
-    const summary = await fetchImportSummary(); // from api.js
-    setImportSummary(summary); // contains { results: [...], last_import: ... }
-    setLastImportTime(summary.last_import);
-  } catch (err) {
-    console.error("Failed to load import summary:", err);
-  }
-};
-
-const avgDuration = (rows, fromKey, toKey) => {
-  const durations = rows
-    .map(r => {
-      const from = r[fromKey];
-      const to = r[toKey];
-      if (!from || !to) return null;
-      const duration = (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24);
-      return duration > 0 ? duration : null;
-    })
-    .filter(Boolean);
-
-  if (durations.length === 0) return 'N/A';
-  const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
-  return `${avg.toFixed(1)} days`;
-};
-
+    if (durations.length === 0) return 'N/A';
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    return `${avg.toFixed(1)} days`;
+  };
 
   const handleImportReports = async () => {
     setImporting(true);
@@ -130,6 +124,12 @@ const avgDuration = (rows, fromKey, toKey) => {
       setImporting(false);
     }
   };
+
+  useEffect(() => {
+    loadAllReports();
+    fetchInitialImportSummary();
+    fetchAgentMetrics().then(setAgentMetrics).catch(console.error);
+  }, []);
 
   const renderChart = (reportId) => {
     const data = metrics[reportId];
@@ -176,16 +176,16 @@ const avgDuration = (rows, fromKey, toKey) => {
           <strong>Import Summary:</strong>
           <ul>
             {importSummary.results.map((r, i) => {
-  const base = r.file.toLowerCase().replace(".xlsx", "");
-  const prefix = Object.keys(friendlyNames).find(key => base.startsWith(key));
-  const label = friendlyNames[prefix] || r.file;
+              const base = r.file.toLowerCase().replace(".xlsx", "");
+              const prefix = Object.keys(friendlyNames).find(key => base.startsWith(key));
+              const label = friendlyNames[prefix] || r.file;
 
-  return (
-    <li key={i}>
-      {label}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
-    </li>
-  );
-})}
+              return (
+                <li key={i}>
+                  {label}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -233,6 +233,33 @@ const avgDuration = (rows, fromKey, toKey) => {
           })}
         </div>
       )}
+
+      {/* Agent Assignment Metrics */}
+      <h2 style={{ marginTop: '40px' }}>Agent Assignment Metrics</h2>
+      <table className="task-table" style={{ marginTop: '10px' }}>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Assigned</th>
+            <th>Resolved</th>
+            <th>Active</th>
+            <th>Avg Time to Assign</th>
+            <th>Avg Time to Resolve</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(agentMetrics).map(([agentId, data]) => (
+            <tr key={agentId}>
+              <td>{agentId}</td>
+              <td>{data.assigned}</td>
+              <td>{data.resolved}</td>
+              <td>{data.active}</td>
+              <td>{data.avg_assign_days}</td>
+              <td>{data.avg_resolve_days}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

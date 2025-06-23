@@ -101,4 +101,9 @@ export async function fetchAllTasks() {
   if (!res.ok) throw new Error("Failed to fetch all records");
   return await res.json();
 }
+export async function fetchAgentMetrics() {
+  const res = await fetch(`${API_BASE_URL}/metrics/agents`);
+  if (!res.ok) throw new Error("Failed to load agent metrics");
+  return await res.json();
+}
 
