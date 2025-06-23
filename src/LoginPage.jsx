@@ -60,8 +60,10 @@ export default function LoginPage() {
     setStatus('loading');
     setMessage('');
 
-    const { error: signupError, data: signupData } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const { error: signupError } = await supabase.auth.signUp({
+      email: normalizedEmail,
       password
     });
 
@@ -75,12 +77,22 @@ export default function LoginPage() {
       return;
     }
 
-    // Insert into approval table
-    await supabase.from('brokerwolfapp_users').insert({
-      email: email.trim().toLowerCase(),
-      approved: false,
-      is_admin: false
-    });
+    // Upsert into approval table to avoid duplicate insert issues
+    const { error: insertError } = await supabase.from('brokerwolfapp_users').upsert(
+      {
+        email: normalizedEmail,
+        approved: false,
+        is_admin: false
+      },
+      { onConflict: 'email' }
+    );
+
+    if (insertError) {
+      console.error("❌ Failed to upsert brokerwolfapp_users:", insertError.message);
+      setMessage("Signup failed. Please contact support.");
+      setStatus('error');
+      return;
+    }
 
     setMessage('Account created! Awaiting admin approval.');
     setStatus('idle');
