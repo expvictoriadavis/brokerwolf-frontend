@@ -57,19 +57,19 @@ export default function Dashboard() {
         const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
 
         results[report.id] = {
-          name: report.name,
-          total: tasks.length,
-          open,
-          inProgress,
-          autoResolved,
-          manualResolved,
-          avgAssignTime,
-          avgResolveTime
-        };
-      } catch (err) {
-        console.error(`Error loading report ${report.name}:`, err);
-      }
-    }
+      name: report.name,
+      total: tasks.length,
+      open,
+      inProgress,
+      autoResolved,
+      manualResolved,
+      avgAssignTime,
+      avgResolveTime
+    };
+  });
+} catch (err) {
+  console.error("Error loading all reports:", err);
+}
     setMetrics(results);
     setLoading(false);
   };
