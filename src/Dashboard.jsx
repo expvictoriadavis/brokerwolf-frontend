@@ -175,11 +175,17 @@ const avgDuration = (rows, fromKey, toKey) => {
         <div style={{ background: '#eaf5ff', padding: '10px', margin: '15px 0' }}>
           <strong>Import Summary:</strong>
           <ul>
-            {importSummary.results.map((r, i) => (
-              <li key={i}>
-                {r.file}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
-              </li>
-            ))}
+            {importSummary.results.map((r, i) => {
+  const base = r.file.toLowerCase().replace(".xlsx", "");
+  const prefix = Object.keys(friendlyNames).find(key => base.startsWith(key));
+  const label = friendlyNames[prefix] || r.file;
+
+  return (
+    <li key={i}>
+      {label}: {r.imported_rows} new, {r.auto_resolved} auto-resolved
+    </li>
+  );
+})}
           </ul>
         </div>
       )}
