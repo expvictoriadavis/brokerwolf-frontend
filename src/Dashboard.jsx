@@ -59,8 +59,8 @@ export default function Dashboard() {
         }
       });
 
-      const avgAssignTime = avgDuration(tasks, 'imported_at', 'assigned_at');
-      const avgResolveTime = avgDuration(tasks, 'imported_at', 'resolved_at');
+      const avgAssignTime = avgDuration(tasks, 'created_at', 'assigned_at');
+      const avgResolveTime = avgDuration(tasks, 'created_at', 'resolved_at');
 
       results[report.id] = {
         name: report.name,
