@@ -317,7 +317,26 @@ const formatTimestamp = (timestamp) =>
 <td>
   <button onClick={() => openTimeModal(task)}>Time</button>
   {!task.resolved && (
-    <button onClick={() => resolveTask(task.id)}>Resolve</button>
+   <button
+  onClick={async () => {
+    try {
+      await resolveTask(task.id);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === task.id
+            ? { ...t, resolved: true, resolved_at: new Date().toISOString() }
+            : t
+        )
+      );
+      alert("Task marked as resolved!");
+    } catch (err) {
+      alert("Failed to resolve task: " + err.message);
+    }
+  }}
+>
+  Resolve
+</button>
+
   )}
 </td>
 <td>{task.data_row?.ExceptionsType ?? '—'}</td>
