@@ -237,3 +237,13 @@ body {
 .Select__menu {
   z-index: 9999 !important;
 }
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e293b; /* or your existing color */
+  color: white;
+  padding: 1rem;
+}
+
