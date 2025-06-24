@@ -13,7 +13,7 @@ export default function UserApproval() {
       setLoading(true);
       try {
         const data = await fetchPendingUsers();
-        setPending(data.users || []);
+        setPending(data || []); // ✅ fixed: expect raw array
       } catch (err) {
         console.error("Error loading pending users", err);
       } finally {
@@ -50,10 +50,15 @@ export default function UserApproval() {
       ) : (
         <ul>
           {pending.map((u) => (
-            <li key={u.email}>
-              {u.email}
+            <li key={u.email} style={{ marginBottom: '8px' }}>
+              <strong>{u.email}</strong>
+              {u.created_at && (
+                <span style={{ marginLeft: '1rem', fontSize: '0.9em', color: '#666' }}>
+                  Requested: {new Date(u.created_at).toLocaleDateString()}
+                </span>
+              )}
               <button
-                style={{ marginLeft: "10px" }}
+                style={{ marginLeft: '12px' }}
                 onClick={() => handleApprove(u.email)}
                 disabled={approving === u.email}
               >
