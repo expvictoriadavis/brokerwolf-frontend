@@ -30,7 +30,7 @@ const reportMetadata = {
       'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
     ]
   },
-'abc12345-duplicate-or-missing-transactions': {
+  'abc12345-duplicate-or-missing-transactions': {
     name: 'Duplicate or Missing Transactions',
     columns: [
       'ExceptionType',
@@ -71,11 +71,11 @@ export default function ReportView() {
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
-const [filters, setFilters] = useState({
-  status: ['open', 'in progress'],  // ✅ pre-select these
-  assignee: [],
-  transaction: ""
-});
+  const [filters, setFilters] = useState({
+    status: ['open', 'in progress'],
+    assignee: [],
+    transaction: ''
+  });
   const [loading, setLoading] = useState(true);
   const [sortByDate, setSortByDate] = useState('desc');
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -102,19 +102,16 @@ const [filters, setFilters] = useState({
   };
 
   const handleFilterChange = (type, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [type]: value
-    }));
+    setFilters(prev => ({ ...prev, [type]: value }));
   };
 
- const resetFilters = () => {
-  setFilters({
-    status: ['open', 'in progress'],  // ✅ default again
-    assignee: [],
-    transaction: ""
-  });
-};
+  const resetFilters = () => {
+    setFilters({
+      status: ['open', 'in progress'],
+      assignee: [],
+      transaction: ''
+    });
+  };
 
   const statusOptions = [
     { value: 'open', label: 'Open' },
@@ -202,31 +199,30 @@ const [filters, setFilters] = useState({
     return sortByDate === 'asc' ? dateA - dateB : dateB - dateA;
   });
 
- // [Your current imports stay the same above]
+  const getDuration = (start, end) => {
+    if (!start || !end) return '—';
+    const diff = new Date(end) - new Date(start);
+    const days = diff / (1000 * 60 * 60 * 24);
+    return `${days.toFixed(1)} days`;
+  };
 
-  // ...everything you've already shared...
-const getDuration = (start, end) => {
-  if (!start || !end) return '—';
-  const diff = new Date(end) - new Date(start);
-  const days = diff / (1000 * 60 * 60 * 24);
-  return `${days.toFixed(1)} days`;
-};
-
-const formatTimestamp = (timestamp) =>
-  timestamp
-    ? new Date(timestamp).toLocaleString('en-US', {
-        year: '2-digit',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })
-    : '—';
+  const formatTimestamp = (timestamp) =>
+    timestamp
+      ? new Date(timestamp).toLocaleString('en-US', {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        })
+      : '—';
 
   return (
     <div>
       <h1>{reportTitle}</h1>
+
+      {/* Filters */}
       <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "flex-end" }}>
         <div style={{ minWidth: "200px" }}>
           <label>Status:</label>
@@ -251,44 +247,44 @@ const formatTimestamp = (timestamp) =>
           />
         </div>
         <div style={{ minWidth: "250px" }}>
-  <label>Transaction Number:</label>
-  <div className="react-select__control" style={{
-    display: 'flex',
-    alignItems: 'center',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    padding: '6px 12px',
-    height: '38px'
-  }}>
-    <input
-      type="text"
-      placeholder="Search..."
-      value={filters.transaction}
-      onChange={(e) => handleFilterChange("transaction", e.target.value)}
-      style={{
-        border: 'none',
-        outline: 'none',
-        width: '100%',
-        fontSize: '14px',
-        background: 'transparent',
-        height: '100%' // ✅ make sure it stretches to match container height
-      }}
-    />
-  </div>
-</div>
+          <label>Transaction Number:</label>
+          <div className="react-select__control" style={{
+            display: 'flex',
+            alignItems: 'center',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            height: '38px'
+          }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={filters.transaction}
+              onChange={(e) => handleFilterChange("transaction", e.target.value)}
+              style={{
+                border: 'none',
+                outline: 'none',
+                width: '100%',
+                fontSize: '14px',
+                background: 'transparent',
+                height: '100%'
+              }}
+            />
+          </div>
+        </div>
         <button onClick={resetFilters} style={{ height: '38px' }}>Reset</button>
       </div>
 
+      {/* Table */}
       {!loading && (
         <table className="task-table">
           <thead>
             <tr>
               <th>Created</th>
-	      <th>Status</th>
+              <th>Status</th>
               <th>Assignee</th>
               <th>Notes</th>
               <th>Actions</th>
-              <th>Exception Type</th>
               {reportColumns.map((col) => (
                 <th key={col}>{col}</th>
               ))}
@@ -297,51 +293,7 @@ const formatTimestamp = (timestamp) =>
           <tbody>
             {filteredTasks.map(task => (
               <tr key={task.id}>
-               <td>{task.created_at ? new Date(task.created_at).toLocaleDateString() : '—'}</td>
-<td>{getStatus(task)}</td>
-<td>
-  <select
-    value={task.assignee_id || ''}
-    onChange={(e) => handleAssign(task.id, e.target.value)}
-  >
-    <option value="">Unassigned</option>
-    {users.map(u => (
-      <option key={u.id} value={u.id}>{u.name || u.email}</option>
-    ))}
-  </select>
-</td>
-<td>
-  <button onClick={() => openNoteModal(task)}>View</button>
-</td>
-<td>
-  <button onClick={() => openTimeModal(task)}>Time</button>
-  {!task.resolved && (
-   <button
-  onClick={async () => {
-    try {
-      await resolveTask(task.id);
-      setTasks(prev =>
-        prev.map(t =>
-          t.id === task.id
-            ? { ...t, resolved: true, resolved_at: new Date().toISOString() }
-            : t
-        )
-      );
-      alert("Task marked as resolved!");
-    } catch (err) {
-      alert("Failed to resolve task: " + err.message);
-    }
-  }}
->
-  Resolve
-</button>
-
-  )}
-</td>
-<td>{task.data_row?.ExceptionsType ?? '—'}</td>
-{reportColumns.map((col) => (
-  <td key={col}>{task.data_row?.[col] ?? '—'}</td>
-))}
+                <td>{task.created_at ? new Date(task.created_at).toLocaleDateString() : '—'}</td>
                 <td>{getStatus(task)}</td>
                 <td>
                   <select
@@ -354,34 +306,60 @@ const formatTimestamp = (timestamp) =>
                     ))}
                   </select>
                 </td>
-                <td>
-                  <button onClick={() => openNoteModal(task)}>View</button>
-                </td>
+                <td><button onClick={() => openNoteModal(task)}>View</button></td>
                 <td>
                   <button onClick={() => openTimeModal(task)}>Time</button>
                   {!task.resolved && (
-                    <button onClick={() => resolveTask(task.id)}>Resolve</button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await resolveTask(task.id);
+                          setTasks(prev =>
+                            prev.map(t =>
+                              t.id === task.id
+                                ? { ...t, resolved: true, resolved_at: new Date().toISOString() }
+                                : t
+                            )
+                          );
+                          alert("Task marked as resolved!");
+                        } catch (err) {
+                          alert("Failed to resolve task: " + err.message);
+                        }
+                      }}
+                    >
+                      Resolve
+                    </button>
                   )}
                 </td>
+
+                {reportColumns.map((col) => {
+                  let value = task.data_row?.[col];
+                  if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
+                    value = new Date(value).toLocaleDateString();
+                  }
+                  return <td key={col}>{value ?? '—'}</td>;
+                })}
               </tr>
             ))}
           </tbody>
         </table>
       )}
 
+      {/* Time Modal */}
       {showTimeModal && timeTask && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Time Metrics</h3>
-           <p><strong>Created:</strong> {formatTimestamp(timeTask.created_at)}</p>
-<p><strong>Assigned:</strong> {formatTimestamp(timeTask.assigned_at)}</p>
-<p><strong>Resolved:</strong> {formatTimestamp(timeTask.resolved_at)}</p>
-<p><strong>Total Duration:</strong> {getDuration(timeTask.created_at, timeTask.resolved_at)}</p>
+            <p><strong>Created:</strong> {formatTimestamp(timeTask.created_at)}</p>
+            <p><strong>Assigned:</strong> {formatTimestamp(timeTask.assigned_at)}</p>
+            <p><strong>Resolved:</strong> {formatTimestamp(timeTask.resolved_at)}</p>
+            <p><strong>Total Duration:</strong> {getDuration(timeTask.created_at, timeTask.resolved_at)}</p>
             <button onClick={() => setShowTimeModal(false)}>Close</button>
           </div>
         </div>
       )}
 
+      {/* Note Modal */}
       {showNoteModal && activeTask && (
         <div className="modal-overlay">
           <div className="modal-box">
