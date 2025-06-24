@@ -66,7 +66,7 @@ export default function ReportView() {
   const { id } = useParams();
   const { user } = useAuth();
   const report = reportMetadata[id];
-  const reportColumns = report?.columns || [];
+const reportColumns = (report?.columns || []).filter(col => !!col && typeof col === 'string');
   const reportTitle = report?.name || 'Unknown Report';
 
   const [tasks, setTasks] = useState([]);
