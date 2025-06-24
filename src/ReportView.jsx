@@ -16,7 +16,7 @@ const reportMetadata = {
     name: 'Missing Transaction TRX',
     columns: [
       'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric', 'MemberFullName',
+      'SourceColumn', 'MemberKeyNumeric', 'MemberFullName',
       'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate', 'StatusCode',
       'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent', 'Percentage', 'Amount'
     ]
@@ -24,8 +24,7 @@ const reportMetadata = {
   '24add57e-1b40-4a49-b586-ccc2dff4faad': {
     name: 'Missing Transaction BW',
     columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber',
-      'explanation', 'Transaction2KeyNumeric', 'Transaction2Number', 'MemberKeyNumeric',
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'TransactionKeyNumeric', 'TransactionNumber', 'SourceColumn', 'MemberKeyNumeric',
       'MemberFullName', 'SourceSystemModificationTimestamp', 'SalesPriceVolume',
       'ActualCloseDate', 'LifecycleStatus', 'UnitsBuyer', 'UnitsSeller',
       'IsBuyerAgent', 'CoAgentPercentage', 'NCIBAS'
@@ -55,7 +54,7 @@ const reportMetadata = {
   'd5cd1b59-6416-4c1d-a021-2d7f9342b49b': {
     name: 'Multi Trade Transaction',
     columns: [
-      'BrokerWolfTransactionKeyNumeric', 'Number', 'ErrorType', 'MemberKeyNumeric',
+      'BrokerWolfTransactionKeyNumeric', 'Number', 'MemberKeyNumeric',
       'MemberFullName', 'SourceSystemModificationTimestamp', 'ClosePrice', 'CloseDate',
       'StatusCode', 'Subtrade', 'UnitsBuyer', 'UnitsSeller', 'IsBuyerAgent',
       'Percentage', 'Amount'
