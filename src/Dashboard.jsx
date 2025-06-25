@@ -164,9 +164,17 @@ export default function Dashboard() {
       </div>
 
       {lastImportTime && (
-        <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#555' }}>
-          Last import: {new Date(lastImportTime).toLocaleString()}
-        </p>
+       <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#555' }}>
+  Last import successful at {new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date(lastImportTime))} EST
+</p>
       )}
 
       {importSummary?.results?.length > 0 && (
