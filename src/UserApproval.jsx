@@ -11,7 +11,7 @@ export default function UserApproval() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/users").then(r => r.json());
+      const res = await fetch("/users/all").then(r => r.json());
       setUsers(res || []);
     } catch (err) {
       console.error("Error loading users", err);
@@ -113,4 +113,3 @@ export default function UserApproval() {
     </div>
   );
 }
-
