@@ -1,38 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { fetchPendingUsers, approveUser } from './api';
+import { approveUser } from './api';
 
 export default function UserApproval() {
   const { user } = useAuth();
-  const [pending, setPending] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(null);
+  const [processing, setProcessing] = useState(null);
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/users").then(r => r.json());
+      setUsers(res || []);
+    } catch (err) {
+      console.error("Error loading users", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchPendingUsers();
-        setPending(data || []); // ✅ fixed: expect raw array
-      } catch (err) {
-        console.error("Error loading pending users", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadUsers();
   }, []);
 
   const handleApprove = async (email) => {
-    setApproving(email);
+    setProcessing(email);
     try {
       await approveUser(email);
-      setPending(prev => prev.filter(u => u.email !== email));
+      await loadUsers();
     } catch (err) {
       alert("Approval failed");
       console.error(err);
     } finally {
-      setApproving(null);
+      setProcessing(null);
+    }
+  };
+
+  const handleReset = async (email) => {
+    if (!window.confirm(`Reset password for ${email}? They will need to recreate their login.`)) return;
+    setProcessing(email);
+    try {
+      const res = await fetch('/users/reset_password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (res.ok) {
+        alert(`${email} reset. They can now recreate their login.`);
+        await loadUsers();
+      } else {
+        alert("Reset failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Reset failed.");
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -42,32 +66,51 @@ export default function UserApproval() {
 
   return (
     <div>
-      <h2>Pending User Approvals</h2>
+      <h2>User Management</h2>
       {loading ? (
         <p>Loading users...</p>
-      ) : pending.length === 0 ? (
-        <p>No users pending approval.</p>
+      ) : users.length === 0 ? (
+        <p>No users found.</p>
       ) : (
-        <ul>
-          {pending.map((u) => (
-            <li key={u.email} style={{ marginBottom: '8px' }}>
-              <strong>{u.email}</strong>
-              {u.created_at && (
-                <span style={{ marginLeft: '1rem', fontSize: '0.9em', color: '#666' }}>
-                  Requested: {new Date(u.created_at).toLocaleDateString()}
-                </span>
-              )}
-              <button
-                style={{ marginLeft: '12px' }}
-                onClick={() => handleApprove(u.email)}
-                disabled={approving === u.email}
-              >
-                {approving === u.email ? "Approving..." : "Approve"}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <table className="task-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Requested</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.email}>
+                <td>{u.email}</td>
+                <td>{u.approved ? "Approved" : "Pending"}</td>
+                <td>{u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
+                <td>
+                  {!u.approved ? (
+                    <button
+                      onClick={() => handleApprove(u.email)}
+                      disabled={processing === u.email}
+                    >
+                      {processing === u.email ? "Approving..." : "Approve"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleReset(u.email)}
+                      disabled={processing === u.email}
+                      style={{ color: 'red' }}
+                    >
+                      {processing === u.email ? "Resetting..." : "Reset Password"}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
 }
+
