@@ -124,6 +124,36 @@ export default function Dashboard() {
     }
   };
 
+  const formatEst = (isoTime) => {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(new Date(isoTime));
+  };
+
+  const getNextScheduledRun = () => {
+    const now = new Date();
+    const utcHour = now.getUTCHours();
+    const utcMinute = now.getUTCMinutes();
+
+    const targets = [15, 2]; // 10 AM and 9 PM EST (15:00 and 02:00 UTC)
+    const upcoming = targets
+      .map(h => {
+        const d = new Date(now);
+        d.setUTCHours(h, 0, 0, 0);
+        if (d <= now) d.setUTCDate(d.getUTCDate() + 1);
+        return d;
+      })
+      .sort((a, b) => a - b);
+
+    return formatEst(upcoming[0]);
+  };
+
   useEffect(() => {
     loadAllReports();
     fetchInitialImportSummary();
@@ -164,17 +194,13 @@ export default function Dashboard() {
       </div>
 
       {lastImportTime && (
-       <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#555' }}>
-  Last import successful at {new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(new Date(lastImportTime))} EST
-</p>
+        <div style={{ marginBottom: '10px' }}>
+          <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#555' }}>
+            Last import successful at {formatEst(lastImportTime)} EST
+            <br />
+            Next scheduled import: {getNextScheduledRun()} EST
+          </p>
+        </div>
       )}
 
       {importSummary?.results?.length > 0 && (
