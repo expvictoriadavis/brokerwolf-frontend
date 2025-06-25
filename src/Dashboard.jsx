@@ -26,7 +26,6 @@ const reports = [
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState({});
-  const [agentMetrics, setAgentMetrics] = useState({});
   const [loading, setLoading] = useState(true);
   const [importSummary, setImportSummary] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -128,7 +127,6 @@ export default function Dashboard() {
   useEffect(() => {
     loadAllReports();
     fetchInitialImportSummary();
-    fetchAgentMetrics().then(setAgentMetrics).catch(console.error);
   }, []);
 
   const renderChart = (reportId) => {
@@ -233,33 +231,6 @@ export default function Dashboard() {
           })}
         </div>
       )}
-
-      {/* Agent Assignment Metrics */}
-      <h2 style={{ marginTop: '40px' }}>Agent Assignment Metrics</h2>
-      <table className="task-table" style={{ marginTop: '10px' }}>
-        <thead>
-          <tr>
-            <th>Agent</th>
-            <th>Assigned</th>
-            <th>Resolved</th>
-            <th>Active</th>
-            <th>Avg Time to Assign</th>
-            <th>Avg Time to Resolve</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(agentMetrics).map(([agentId, data]) => (
-            <tr key={agentId}>
-              <td>{agentId}</td>
-              <td>{data.assigned}</td>
-              <td>{data.resolved}</td>
-              <td>{data.active}</td>
-              <td>{data.avg_assign_days}</td>
-              <td>{data.avg_resolve_days}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
